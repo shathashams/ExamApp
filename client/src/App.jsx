@@ -16,7 +16,7 @@ function App() {
     setUser(userData)
   }
 
-  // פונקציה שמנתקת את המשתמש ומחזירה למסך Login
+  // פונקציה שמנתקת את המשתמש ומחזירה למסך 
   const handleLogout = () => {
     setUser(null)
   }
@@ -42,7 +42,6 @@ function App() {
         </button>
       </div>
 
-      {/* הצגת המסך המתאים לפי התפקיד שנבחר ב-Login */}
       {user.role === 'teacher' ? <TeacherDashboard /> : <StudentPortal />}
     </div>
   )

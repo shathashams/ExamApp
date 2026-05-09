@@ -12,7 +12,7 @@ function Login({ onLogin }) {
   // שמירת הודעת שגיאה במקרה שהמשתמש לא מילא פרטים
   const [error, setError] = useState('')
 
-  // פונקציה שמופעלת כאשר המשתמש לוחץ על Login
+  // Login פונקציה שמופעלת כאשר המשתמש לוחץ על 
   const handleSubmit = (e) => {
     e.preventDefault()
 
@@ -21,7 +21,7 @@ function Login({ onLogin }) {
       return
     }
 
-    // שליחת פרטי המשתמש לקומפוננטה הראשית App
+    //App שליחת פרטי המשתמש לקומפוננטה הראשית 
     onLogin({
       username,
       role,
