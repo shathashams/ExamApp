@@ -9,3 +9,28 @@ body {
 .card-title {
   font-weight: bold;
 }
+/* עיצוב מסך ההתחברות */
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eef4ff, #ffffff);
+  padding: 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 18px;
+  border: 1px solid #e1e5ee;
+}
+
+.login-icon {
+  font-size: 42px;
+}
+
+.app-header {
+  background-color: #ffffff;
+  border: 1px solid #e1e5ee;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
