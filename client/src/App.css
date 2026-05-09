@@ -9,3 +9,100 @@ body {
 .card-title {
   font-weight: bold;
 }
+/* עיצוב מסך ההתחברות */
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eef4ff, #ffffff);
+  padding: 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 18px;
+  border: 1px solid #e1e5ee;
+}
+
+.login-icon {
+  font-size: 42px;
+}
+
+.app-header {
+  background-color: #ffffff;
+  border: 1px solid #e1e5ee;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+/* עיצוב משופר למסך המבחן של התלמיד */
+.student-exam-page {
+  background-color: #f7f9fc;
+  padding: 20px;
+  border-radius: 18px;
+}
+
+.question-card {
+  border-radius: 18px;
+}
+
+.question-number {
+  background-color: #111827;
+  color: white;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.answer-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.answer-option {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  background-color: white;
+  border-radius: 10px;
+  padding: 12px 16px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: 0.2s;
+}
+
+.answer-option:hover {
+  border-color: #0d6efd;
+  background-color: #f8fbff;
+}
+
+.answer-option-selected {
+  border: 2px solid #0d6efd;
+  background-color: #eef5ff;
+  color: #0d6efd;
+  font-weight: 600;
+}
+
+.answer-circle {
+  width: 14px;
+  height: 14px;
+  border: 1px solid #94a3b8;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.answer-option-selected .answer-circle {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.exam-progress {
+  width: 180px;
+  height: 8px;
+}
