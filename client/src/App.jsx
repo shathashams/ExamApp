@@ -1,29 +1,61 @@
 // הקומפוננטה הראשית של האפליקציה
-// כאן אנחנו מחליטים אם להציג את מסך ההתחברות או את מערכת המבחנים
+// כאן אנחנו מחליטים אם להציג התחברות, הרשמה, או את מערכת המבחנים
 
 import { useState } from 'react'
-import Login from './Login'
+import Login from './auth/Login'
+import Register from './auth/Register'
 import TeacherDashboard from './TeacherDashboard'
 import StudentPortal from './StudentPortal'
 import './App.css'
 
 function App() {
-  // שמירת פרטי המשתמש לאחר התחברות
+  // שמירת פרטי המשתמש לאחר התחברות או הרשמה
   const [user, setUser] = useState(null)
 
-  // פונקציה שמקבלת את פרטי המשתמש ממסך ההתחברות
+  // קובע אם מוצג כרגע מסך Login או Register
+  const [authMode, setAuthMode] = useState('login')
+
+  // רשימת משתמשים זמנית בזיכרון, כהכנה למערכת משתמשים אמיתית בעתיד
+  const [users, setUsers] = useState([])
+
+  // התחברות למערכת
   const handleLogin = (userData) => {
     setUser(userData)
   }
 
-  // פונקציה שמנתקת את המשתמש ומחזירה למסך 
-  const handleLogout = () => {
-    setUser(null)
+  // הרשמה: שמירת המשתמש החדש ואז כניסה למערכת
+  const handleRegister = (newUser) => {
+    setUsers([...users, newUser])
+
+    setUser({
+      username: newUser.username,
+      role: newUser.role,
+    })
   }
 
-  // אם אין משתמש מחובר, מציגים את מסך ההתחברות
+  // יציאה מהמערכת וחזרה למסך Login
+  const handleLogout = () => {
+    setUser(null)
+    setAuthMode('login')
+  }
+
+  // אם אין משתמש מחובר, מציגים Login או Register
   if (!user) {
-    return <Login onLogin={handleLogin} />
+    if (authMode === 'register') {
+      return (
+        <Register
+          onRegister={handleRegister}
+          onSwitchToLogin={() => setAuthMode('login')}
+        />
+      )
+    }
+
+    return (
+      <Login
+        onLogin={handleLogin}
+        onSwitchToRegister={() => setAuthMode('register')}
+      />
+    )
   }
 
   return (
@@ -42,6 +74,7 @@ function App() {
         </button>
       </div>
 
+      {/* הצגת המסך המתאים לפי תפקיד המשתמש */}
       {user.role === 'teacher' ? <TeacherDashboard /> : <StudentPortal />}
     </div>
   )

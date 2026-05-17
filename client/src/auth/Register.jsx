@@ -1,18 +1,15 @@
-// קומפוננטת התחברות למערכת המבחנים
-// המשתמש מכניס שם, סיסמה ובוחר תפקיד: מורה או תלמיד
+// קומפוננטת הרשמה פשוטה למערכת
+// המשתמש יוצר חשבון עם שם משתמש, סיסמה ובחירת תפקיד
 
 import { useState } from 'react'
 
-function Login({ onLogin }) {
-  // שמירת הערכים שהמשתמש מכניס בטופס
+function Register({ onRegister, onSwitchToLogin }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState('teacher')
-
-  // שמירת הודעת שגיאה במקרה שהמשתמש לא מילא פרטים
+  const [role, setRole] = useState('student')
   const [error, setError] = useState('')
 
-  // Login פונקציה שמופעלת כאשר המשתמש לוחץ על 
+  // פונקציה שמופעלת כאשר המשתמש לוחץ על Register
   const handleSubmit = (e) => {
     e.preventDefault()
 
@@ -21,9 +18,10 @@ function Login({ onLogin }) {
       return
     }
 
-    //App שליחת פרטי המשתמש לקומפוננטה הראשית 
-    onLogin({
+    // שליחת פרטי המשתמש החדש לקומפוננטה הראשית
+    onRegister({
       username,
+      password,
       role,
     })
   }
@@ -33,42 +31,42 @@ function Login({ onLogin }) {
       <div className="card login-card shadow-lg">
         <div className="card-body p-4">
           <div className="text-center mb-4">
-            <div className="login-icon mb-2">📝</div>
-            <h1 className="fw-bold">E-Test Login</h1>
+            <div className="login-icon mb-2">🧾</div>
+            <h1 className="fw-bold">Create Account</h1>
             <p className="text-muted mb-0">
-              Sign in to continue to the exam system
+              Register to use the E-Test System
             </p>
           </div>
 
-          {/* הצגת הודעת שגיאה אם המשתמש לא מילא שם או סיסמה */}
+          {/* הצגת שגיאה אם המשתמש לא מילא פרטים */}
           {error && <div className="alert alert-danger">{error}</div>}
 
           <form onSubmit={handleSubmit}>
-            {/* שדה להכנסת שם משתמש */}
+            {/* שם משתמש חדש */}
             <div className="mb-3">
               <label className="form-label">Username</label>
               <input
                 type="text"
                 className="form-control form-control-lg"
-                placeholder="Enter username"
+                placeholder="Choose username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
             </div>
 
-            {/* שדה להכנסת סיסמה */}
+            {/* סיסמה חדשה */}
             <div className="mb-3">
               <label className="form-label">Password</label>
               <input
                 type="password"
                 className="form-control form-control-lg"
-                placeholder="Enter password"
+                placeholder="Choose password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
 
-            {/* בחירת תפקיד המשתמש במערכת */}
+            {/* בחירת תפקיד במערכת */}
             <div className="mb-4">
               <label className="form-label">Choose role</label>
               <div className="btn-group w-100">
@@ -94,15 +92,25 @@ function Login({ onLogin }) {
               </div>
             </div>
 
-            {/* כפתור התחברות */}
-            <button type="submit" className="btn btn-primary btn-lg w-100">
-              Login
+            <button type="submit" className="btn btn-success btn-lg w-100">
+              Register
             </button>
           </form>
+
+          {/* מעבר למסך Login */}
+          <div className="text-center mt-3">
+            <button
+              className="btn btn-link"
+              type="button"
+              onClick={onSwitchToLogin}
+            >
+              Already have an account? Login
+            </button>
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
-export default Login
+export default Register
