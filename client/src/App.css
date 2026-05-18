@@ -1,21 +1,26 @@
+/* עיצוב כללי של כל הדף */
 body {
   background-color: #f5f7fb;
 }
 
+/* עיצוב בסיסי לכל הכרטיסים במערכת */
 .card {
   border-radius: 12px;
 }
 
+/* הדגשת כותרות הכרטיסים */
 .card-title {
   font-weight: bold;
 }
-/* עיצוב מסך ההתחברות */
+
+/* עיצוב מסך ההתחברות וההרשמה */
 .login-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #eef4ff, #ffffff);
   padding: 20px;
 }
 
+/* כרטיס ההתחברות המרכזי */
 .login-card {
   width: 100%;
   max-width: 520px;
@@ -23,10 +28,12 @@ body {
   border: 1px solid #e1e5ee;
 }
 
+/* אייקון שמופיע בראש מסך ההתחברות */
 .login-icon {
   font-size: 42px;
 }
 
+/* תפריט עליון אחרי התחברות למערכת */
 .app-header {
   background-color: #ffffff;
   border: 1px solid #e1e5ee;
@@ -34,17 +41,20 @@ body {
   padding: 18px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
 }
-/* עיצוב משופר למסך המבחן של התלמיד */
+
+/* עיצוב כללי למסך המבחן של התלמיד */
 .student-exam-page {
   background-color: #f7f9fc;
   padding: 20px;
   border-radius: 18px;
 }
 
+/* כרטיס שמציג את השאלה הנוכחית */
 .question-card {
   border-radius: 18px;
 }
 
+/* מספר השאלה שמופיע בעיגול ליד הטקסט */
 .question-number {
   background-color: #111827;
   color: white;
@@ -58,12 +68,14 @@ body {
   flex-shrink: 0;
 }
 
+/* רשימת אפשרויות התשובה */
 .answer-options {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
+/* עיצוב כפתור של תשובה */
 .answer-option {
   width: 100%;
   border: 1px solid #cbd5e1;
@@ -79,11 +91,13 @@ body {
   font-weight: 500;
 }
 
+/* שינוי צבע כאשר העכבר נמצא מעל תשובה */
 .answer-option:hover {
   border-color: #0d6efd;
   background-color: #f8fbff;
 }
 
+/* עיצוב תשובה שנבחרה על ידי התלמיד */
 .answer-option-selected {
   border: 2px solid #0d6efd;
   background-color: #eef5ff;
@@ -91,6 +105,7 @@ body {
   font-weight: 600;
 }
 
+/* עיגול קטן ליד כל תשובה */
 .answer-circle {
   width: 14px;
   height: 14px;
@@ -99,11 +114,13 @@ body {
   display: inline-block;
 }
 
+/* מילוי העיגול כאשר התשובה נבחרה */
 .answer-option-selected .answer-circle {
   background-color: #0d6efd;
   border-color: #0d6efd;
 }
 
+/* פס ההתקדמות בין שאלות המבחן */
 .exam-progress {
   width: 180px;
   height: 8px;

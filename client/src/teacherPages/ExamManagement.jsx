@@ -4,11 +4,19 @@
 import { useState } from 'react'
 
 function ExamManagement({ exam, onBack }) {
+  // שומר עותק מקומי של המבחן כדי לאפשר שינויים במסך בלי לשנות את ה-DB המדומה ישירות
   const [localExam, setLocalExam] = useState(exam)
+
+  // קובע אם להציג את טופס הוספת השאלה
   const [showAddQuestion, setShowAddQuestion] = useState(false)
+
+  // קובע אם להציג את טופס עריכת פרטי המבחן
   const [showEditInfo, setShowEditInfo] = useState(false)
+
+  // שומר איזו שאלה נמצאת כרגע במצב עריכה
   const [editingQuestionId, setEditingQuestionId] = useState(null)
 
+  // שמירת פרטי המבחן הכלליים שמוצגים למורה
   const [examInfo, setExamInfo] = useState({
     title: exam?.title || '',
     duration: 60,
@@ -17,18 +25,21 @@ function ExamManagement({ exam, onBack }) {
     teacherAvailable: 'First 20 minutes of the exam',
   })
 
+  // שמירת הערכים שהמורה מכניס בטופס הוספת שאלה חדשה
   const [newQuestion, setNewQuestion] = useState({
     text: '',
     options: '',
     answer: '',
   })
 
+  // שמירת הערכים של השאלה שנמצאת כרגע בעריכה
   const [editQuestion, setEditQuestion] = useState({
     text: '',
     options: '',
     answer: '',
   })
 
+  // אם לא נבחר מבחן, מציגים הודעה וכפתור חזרה
   if (!localExam) {
     return (
       <div className="card shadow-sm">
@@ -78,7 +89,7 @@ function ExamManagement({ exam, onBack }) {
     setEditingQuestionId(null)
   }
 
-  // הוספת שאלה חדשה למבחן
+  // הוספת שאלה חדשה למבחן אחרי בדיקה שכל השדות מולאו
   const handleAddQuestion = () => {
     if (!newQuestion.text || !newQuestion.options || !newQuestion.answer) {
       alert('Please fill all question fields.')
@@ -106,7 +117,7 @@ function ExamManagement({ exam, onBack }) {
     setShowAddQuestion(false)
   }
 
-  // שמירת מידע כללי של המבחן
+  // שמירת מידע כללי של המבחן, כמו שם המבחן, זמן וחומר עזר
   const handleSaveExamInfo = () => {
     setLocalExam({
       ...localExam,
@@ -123,6 +134,7 @@ function ExamManagement({ exam, onBack }) {
           ← Back to Dashboard
         </button>
 
+        {/* כותרת הדף וכפתורי הניהול המרכזיים */}
         <div className="d-flex justify-content-between align-items-start mb-4">
           <div>
             <h2 className="fw-bold mb-1">{localExam.title}</h2>
@@ -148,6 +160,7 @@ function ExamManagement({ exam, onBack }) {
           </div>
         </div>
 
+        {/* טופס לעריכת מידע כללי של המבחן */}
         {showEditInfo && (
           <div className="card border-primary mb-4">
             <div className="card-body">
@@ -206,7 +219,10 @@ function ExamManagement({ exam, onBack }) {
                 }
               />
 
-              <button className="btn btn-success me-2" onClick={handleSaveExamInfo}>
+              <button
+                className="btn btn-success me-2"
+                onClick={handleSaveExamInfo}
+              >
                 Save Exam Info
               </button>
 
@@ -220,6 +236,7 @@ function ExamManagement({ exam, onBack }) {
           </div>
         )}
 
+        {/* כרטיסים המציגים מידע כללי על המבחן */}
         <div className="row mb-4">
           <div className="col-md-3 mb-3">
             <div className="card h-100 border-primary">
@@ -258,12 +275,14 @@ function ExamManagement({ exam, onBack }) {
           </div>
         </div>
 
+        {/* מידע נוסף למורה על חומר עזר וזמינות בזמן הבחינה */}
         <div className="alert alert-info">
           <strong>Allowed Materials:</strong> {examInfo.allowedMaterials}
           <br />
           <strong>Teacher Availability:</strong> {examInfo.teacherAvailable}
         </div>
 
+        {/* טופס להוספת שאלה חדשה למבחן */}
         {showAddQuestion && (
           <div className="card border-primary mb-4">
             <div className="card-body">
@@ -296,7 +315,10 @@ function ExamManagement({ exam, onBack }) {
                 }
               />
 
-              <button className="btn btn-success me-2" onClick={handleAddQuestion}>
+              <button
+                className="btn btn-success me-2"
+                onClick={handleAddQuestion}
+              >
                 Save Question
               </button>
 
@@ -313,6 +335,7 @@ function ExamManagement({ exam, onBack }) {
         <h4 className="mb-3">Exam Questions</h4>
 
         <div className="list-group">
+          {/* הצגת כל השאלות של המבחן עם אפשרות עריכה */}
           {localExam.questions.map((question, index) => (
             <div className="list-group-item mb-3 rounded" key={question.id}>
               <div className="d-flex justify-content-between align-items-start">
@@ -340,6 +363,7 @@ function ExamManagement({ exam, onBack }) {
                 </button>
               </div>
 
+              {/* טופס עריכת שאלה שמופיע רק עבור השאלה שנבחרה */}
               {editingQuestionId === question.id && (
                 <div className="mt-3 border-top pt-3">
                   <h6>Edit Question</h6>

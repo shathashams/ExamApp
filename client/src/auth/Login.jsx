@@ -12,7 +12,7 @@ function Login({ onLogin, onSwitchToRegister }) {
   // שמירת הודעת שגיאה במקרה שהמשתמש לא מילא פרטים
   const [error, setError] = useState('')
 
-  // פונקציה שמופעלת כאשר המשתמש לוחץ על Login
+  // Loginפונקציה שמופעלת כאשר המשתמש לוחץ על 
   const handleSubmit = (e) => {
     e.preventDefault()
 
@@ -21,7 +21,7 @@ function Login({ onLogin, onSwitchToRegister }) {
       return
     }
 
-    // שליחת פרטי המשתמש לקומפוננטה הראשית App
+    // שליחת פרטי המשתמש לקומפוננטה הראשית 
     onLogin({
       username,
       role,
@@ -101,7 +101,7 @@ function Login({ onLogin, onSwitchToRegister }) {
             </button>
           </form>
 
-          {/* מעבר למסך Register */}
+          {/* Registerמעבר למסך  */}
           <div className="text-center mt-3">
             <button
               className="btn btn-link"

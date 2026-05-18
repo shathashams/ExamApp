@@ -1,5 +1,5 @@
 // הקומפוננטה הראשית של האפליקציה
-// כאן אנחנו מחליטים אם להציג התחברות, הרשמה, או את מערכת המבחנים
+// אחראית על ניהול התחברות, הרשמה, ניווט בין דפים והצגת מסך לפי תפקיד המשתמש
 
 import { useState } from 'react'
 import Login from './auth/Login'
@@ -11,19 +11,22 @@ import StudentPortal from './studentPages/StudentPortal'
 import './App.css'
 
 function App() {
-  // שמירת פרטי המשתמש לאחר התחברות או הרשמה
+  // שומר את המשתמש שמחובר כרגע למערכת
   const [user, setUser] = useState(null)
 
-  // קובע אם מוצג כרגע מסך Login או Register
+  // קובע אם להציג למשתמש מסך התחברות או מסך הרשמה
   const [authMode, setAuthMode] = useState('login')
 
-  // קובע איזה דף מוצג אחרי התחברות
+  // שומר איזה דף מוצג כרגע אחרי ההתחברות
+  // לדוגמה: דף מורה, יצירת מבחן, פורטל תלמיד או תוצאות
   const [activePage, setActivePage] = useState('teacherDashboard')
 
-  // רשימת משתמשים זמנית בזיכרון, כהכנה למערכת משתמשים אמיתית בעתיד
+  // רשימת משתמשים זמנית בזיכרון
+  // Backendכרגע זה מדמה שמירת משתמשים, עד שיהיה  בעתיד
   const [users, setUsers] = useState([])
 
-  // התחברות למערכת
+  // פונקציה שמטפלת בהתחברות המשתמש למערכת
+  // לפי התפקיד שנבחר, היא מעבירה אותו לדף המתאים
   const handleLogin = (userData) => {
     setUser(userData)
 
@@ -34,7 +37,8 @@ function App() {
     }
   }
 
-  // הרשמה: שמירת המשתמש החדש ואז כניסה למערכת
+  // פונקציה שמטפלת בהרשמה של משתמש חדש
+  // היא מוסיפה את המשתמש לרשימה הזמנית ומכניסה אותו למערכת
   const handleRegister = (newUser) => {
     setUsers([...users, newUser])
 
@@ -52,14 +56,14 @@ function App() {
     }
   }
 
-  // יציאה מהמערכת וחזרה למסך Login
+  // פונקציה שמנתקת את המשתמש ומחזירה אותו למסך ההתחברות
   const handleLogout = () => {
     setUser(null)
     setAuthMode('login')
     setActivePage('teacherDashboard')
   }
 
-  // אם אין משתמש מחובר, מציגים Login או Register
+  // אם אין משתמש מחובר, מציגים את מסכי ההתחברות או ההרשמה
   if (!user) {
     if (authMode === 'register') {
       return (
@@ -80,6 +84,7 @@ function App() {
 
   return (
     <div className="container mt-4">
+      {/* תפריט ניווט שמציג כפתורים לפי תפקיד המשתמש */}
       <NavigationMenu
         user={user}
         activePage={activePage}
@@ -87,18 +92,22 @@ function App() {
         onLogout={handleLogout}
       />
 
+      {/* הצגת דף הבית של המורה */}
       {user.role === 'teacher' && activePage === 'teacherDashboard' && (
         <TeacherDashboard />
       )}
 
+      {/* הצגת דף יצירת מבחן למורה */}
       {user.role === 'teacher' && activePage === 'createExam' && (
         <CreateExam />
       )}
 
+      {/* הצגת פורטל התלמיד */}
       {user.role === 'student' && activePage === 'studentPortal' && (
         <StudentPortal />
       )}
 
+      {/* דף תוצאות עתידי לתלמיד */}
       {user.role === 'student' && activePage === 'results' && (
         <div className="card shadow-sm">
           <div className="card-body text-center p-4">

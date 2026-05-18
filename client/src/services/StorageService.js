@@ -1,5 +1,5 @@
 // שירות שמירה מקומי
-// מאפשר לשמור ולקרוא מידע מה-localStorage של הדפדפן
+// localStorageמאפשר לשמור ולקרוא מידע מה הדפדפן
 
 class StorageService {
   save(key, value) {
