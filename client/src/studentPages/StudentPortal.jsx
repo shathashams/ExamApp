@@ -5,12 +5,25 @@ import { useState } from 'react'
 import { getExamById } from '../api/examService'
 
 function StudentPortal() {
+  // שומר את מספר המבחן שהתלמיד מקליד
   const [examId, setExamId] = useState('')
+
+  // Mock APIשומר את המבחן שנבחר אחרי טעינה מה-
   const [exam, setExam] = useState(null)
+
+  // שומר הודעת שגיאה או הודעה למשתמש
   const [message, setMessage] = useState('')
+
+  // שומר את מספר השאלה הנוכחית שהתלמיד רואה
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
+
+  // שומר את התשובות שהתלמיד בחר לכל שאלה
   const [selectedAnswers, setSelectedAnswers] = useState({})
+
+  // קובע אם המבחן כבר הוגש
   const [isSubmitted, setIsSubmitted] = useState(false)
+
+  // שומר את מספר התשובות הנכונות של התלמיד
   const [score, setScore] = useState(0)
 
   // התחלת מבחן לפי מזהה שהמשתמש מכניס
@@ -29,6 +42,7 @@ function StudentPortal() {
       return
     }
 
+    // איפוס מצב המבחן בכל התחלה חדשה
     setExam(data)
     setMessage('')
     setCurrentQuestionIndex(0)
@@ -37,7 +51,7 @@ function StudentPortal() {
     setScore(0)
   }
 
-  // יציאה מהמבחן וחזרה למסך התחלה
+  // יציאה מהמבחן וחזרה למסך ההתחלה של התלמיד
   const handleExitExam = () => {
     setExam(null)
     setExamId('')
@@ -56,14 +70,14 @@ function StudentPortal() {
     })
   }
 
-  // מעבר לשאלה הבאה
+  // מעבר לשאלה הבאה, אם זו לא השאלה האחרונה
   const handleNextQuestion = () => {
     if (currentQuestionIndex < exam.questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1)
     }
   }
 
-  // חזרה לשאלה הקודמת
+  // חזרה לשאלה הקודמת, אם זו לא השאלה הראשונה
   const handlePreviousQuestion = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1)
@@ -84,7 +98,6 @@ function StudentPortal() {
     setIsSubmitted(true)
   }
 
-
   // מסך התחלה לפני טעינת מבחן
   if (!exam) {
     return (
@@ -101,11 +114,13 @@ function StudentPortal() {
               value={examId}
               onChange={(e) => setExamId(e.target.value)}
             />
+
             <button className="btn btn-success" onClick={handleStartExam}>
               Start
             </button>
           </div>
 
+          {/* הצגת הודעה אם לא הוזן מזהה או אם המבחן לא נמצא */}
           {message && <div className="alert alert-warning">{message}</div>}
 
           <div className="text-muted small">
@@ -116,10 +131,14 @@ function StudentPortal() {
     )
   }
 
+  // השאלה הנוכחית שמוצגת לתלמיד
   const currentQuestion = exam.questions[currentQuestionIndex]
+
+  // חישוב אחוז ההתקדמות במבחן
   const progressPercent =
     ((currentQuestionIndex + 1) / exam.questions.length) * 100
 
+  // חישוב הציון באחוזים אחרי הגשת המבחן
   const gradePercent = Math.round((score / exam.questions.length) * 100)
 
   // מסך תוצאה אחרי הגשת המבחן
@@ -133,6 +152,7 @@ function StudentPortal() {
               Your answers were submitted successfully.
             </p>
 
+            {/* הצגת הציון הסופי של התלמיד */}
             <div className="alert alert-primary">
               <h4 className="mb-2">Your Score</h4>
               <p className="mb-1">
@@ -144,9 +164,10 @@ function StudentPortal() {
             </div>
 
             <div className="d-flex justify-content-center gap-2 mt-4">
-
-
-              <button className="btn btn-outline-secondary" onClick={handleExitExam}>
+              <button
+                className="btn btn-outline-secondary"
+                onClick={handleExitExam}
+              >
                 Exit Exam
               </button>
             </div>
@@ -158,10 +179,13 @@ function StudentPortal() {
 
   return (
     <div className="student-exam-page">
+      {/* כותרת אזור המבחן וכפתור יציאה */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="mb-1">🎓 Student Portal</h2>
-          <p className="text-muted mb-0">Welcome to your online assessment center</p>
+          <p className="text-muted mb-0">
+            Welcome to your online assessment center
+          </p>
         </div>
 
         <button className="btn btn-outline-secondary" onClick={handleExitExam}>
@@ -169,6 +193,7 @@ function StudentPortal() {
         </button>
       </div>
 
+      {/* פרטי המבחן הפעיל */}
       <div className="card shadow-sm mb-4">
         <div className="card-body p-4">
           <span className="badge rounded-pill bg-primary-subtle text-primary mb-3">
@@ -184,6 +209,7 @@ function StudentPortal() {
         </div>
       </div>
 
+      {/* הצגת השאלה הנוכחית ואפשרויות התשובה */}
       <div className="card shadow-sm question-card mb-4">
         <div className="card-body p-4">
           <div className="d-flex align-items-start gap-3 mb-3">
@@ -214,6 +240,7 @@ function StudentPortal() {
         </div>
       </div>
 
+      {/* אזור ניווט בין שאלות והצגת התקדמות */}
       <div className="card shadow-sm">
         <div className="card-body d-flex justify-content-between align-items-center">
           <div className="d-flex align-items-center gap-3">
@@ -238,6 +265,7 @@ function StudentPortal() {
               Previous
             </button>
 
+            {/* בשאלה האחרונה  Submit Exam במקום Next Question */}
             {currentQuestionIndex === exam.questions.length - 1 ? (
               <button
                 className="btn btn-success"

@@ -97,7 +97,7 @@ function Register({ onRegister, onSwitchToLogin }) {
             </button>
           </form>
 
-          {/* מעבר למסך Login */}
+          {/* Loginמעבר למסך  */}
           <div className="text-center mt-3">
             <button
               className="btn btn-link"

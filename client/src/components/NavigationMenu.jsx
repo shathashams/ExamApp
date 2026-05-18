@@ -5,6 +5,7 @@ function NavigationMenu({ user, activePage, onNavigate, onLogout }) {
   return (
     <div className="app-header mb-4">
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        {/* אזור שמציג את שם המערכת ופרטי המשתמש המחובר */}
         <div>
           <h1 className="mb-1">E-Test System</h1>
           <p className="text-muted mb-0">
@@ -12,7 +13,9 @@ function NavigationMenu({ user, activePage, onNavigate, onLogout }) {
           </p>
         </div>
 
+        {/* אזור כפתורי הניווט וההתנתקות */}
         <div className="d-flex align-items-center gap-2 flex-wrap">
+          {/* אם המשתמש הוא מורה, מציגים לו ניווט לדפי מורה */}
           {user.role === 'teacher' && (
             <>
               <button
@@ -39,6 +42,7 @@ function NavigationMenu({ user, activePage, onNavigate, onLogout }) {
             </>
           )}
 
+          {/* אם המשתמש הוא תלמיד, מציגים לו ניווט לדפי תלמיד */}
           {user.role === 'student' && (
             <>
               <button
@@ -65,6 +69,7 @@ function NavigationMenu({ user, activePage, onNavigate, onLogout }) {
             </>
           )}
 
+          {/* כפתור יציאה מהמערכת */}
           <button className="btn btn-outline-danger" onClick={onLogout}>
             Logout
           </button>
