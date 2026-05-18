@@ -2,7 +2,7 @@
 // מאפשרת לתלמיד להתחיל מבחן, לבחור תשובות, לעבור בין שאלות, להגיש מבחן ולקבל ציון
 
 import { useState } from 'react'
-import { getExamById } from './api/examService'
+import { getExamById } from '../api/examService'
 
 function StudentPortal() {
   const [examId, setExamId] = useState('')

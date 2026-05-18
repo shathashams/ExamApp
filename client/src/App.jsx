@@ -5,7 +5,7 @@ import { useState } from 'react'
 import Login from './auth/Login'
 import Register from './auth/Register'
 import TeacherDashboard from './teacherPages/TeacherDashboard'
-import StudentPortal from './StudentPortal'
+import StudentPortal from './studentPages/StudentPortal'
 import './App.css'
 
 function App() {
