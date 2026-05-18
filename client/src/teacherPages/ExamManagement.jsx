@@ -1,13 +1,35 @@
 // דף ניהול מבחן למורה
-// מציג פרטי מבחן, מידע כללי, שאלות, תשובות וכפתורי ניהול בסיסיים
+// מאפשר צפייה בפרטי מבחן, עריכת שאלות, הוספת שאלה ועריכת מידע בסיסי של המבחן
 
 import { useState } from 'react'
 
 function ExamManagement({ exam, onBack }) {
+  const [localExam, setLocalExam] = useState(exam)
   const [showAddQuestion, setShowAddQuestion] = useState(false)
+  const [showEditInfo, setShowEditInfo] = useState(false)
   const [editingQuestionId, setEditingQuestionId] = useState(null)
 
-  if (!exam) {
+  const [examInfo, setExamInfo] = useState({
+    title: exam?.title || '',
+    duration: 60,
+    extraTime: 15,
+    allowedMaterials: 'Calculator and course notes',
+    teacherAvailable: 'First 20 minutes of the exam',
+  })
+
+  const [newQuestion, setNewQuestion] = useState({
+    text: '',
+    options: '',
+    answer: '',
+  })
+
+  const [editQuestion, setEditQuestion] = useState({
+    text: '',
+    options: '',
+    answer: '',
+  })
+
+  if (!localExam) {
     return (
       <div className="card shadow-sm">
         <div className="card-body text-center">
@@ -20,12 +42,79 @@ function ExamManagement({ exam, onBack }) {
     )
   }
 
-  const examDuration = 60
-  const extraTime = 15
   const openQuestions = 0
-  const closedQuestions = exam.questions.length
-  const allowedMaterials = 'Calculator and course notes'
-  const teacherAvailable = 'First 20 minutes of the exam'
+  const closedQuestions = localExam.questions.length
+
+  // פתיחת טופס עריכת שאלה עם הערכים הקיימים שלה
+  const startEditQuestion = (question) => {
+    setEditingQuestionId(question.id)
+    setEditQuestion({
+      text: question.text,
+      options: question.options?.join(', ') || '',
+      answer: question.answer,
+    })
+  }
+
+  // שמירת שינויי שאלה בתוך local state
+  const saveQuestionChanges = (questionId) => {
+    const updatedQuestions = localExam.questions.map((question) => {
+      if (question.id !== questionId) {
+        return question
+      }
+
+      return {
+        ...question,
+        text: editQuestion.text,
+        options: editQuestion.options.split(',').map((option) => option.trim()),
+        answer: editQuestion.answer,
+      }
+    })
+
+    setLocalExam({
+      ...localExam,
+      questions: updatedQuestions,
+    })
+
+    setEditingQuestionId(null)
+  }
+
+  // הוספת שאלה חדשה למבחן
+  const handleAddQuestion = () => {
+    if (!newQuestion.text || !newQuestion.options || !newQuestion.answer) {
+      alert('Please fill all question fields.')
+      return
+    }
+
+    const questionToAdd = {
+      id: Date.now(),
+      text: newQuestion.text,
+      options: newQuestion.options.split(',').map((option) => option.trim()),
+      answer: newQuestion.answer,
+    }
+
+    setLocalExam({
+      ...localExam,
+      questions: [...localExam.questions, questionToAdd],
+    })
+
+    setNewQuestion({
+      text: '',
+      options: '',
+      answer: '',
+    })
+
+    setShowAddQuestion(false)
+  }
+
+  // שמירת מידע כללי של המבחן
+  const handleSaveExamInfo = () => {
+    setLocalExam({
+      ...localExam,
+      title: examInfo.title,
+    })
+
+    setShowEditInfo(false)
+  }
 
   return (
     <div className="card shadow-sm">
@@ -36,14 +125,17 @@ function ExamManagement({ exam, onBack }) {
 
         <div className="d-flex justify-content-between align-items-start mb-4">
           <div>
-            <h2 className="fw-bold mb-1">{exam.title}</h2>
+            <h2 className="fw-bold mb-1">{localExam.title}</h2>
             <p className="text-muted mb-0">
               Manage exam details, questions, answers, and exam settings.
             </p>
           </div>
 
           <div className="d-flex gap-2">
-            <button className="btn btn-outline-primary">
+            <button
+              className="btn btn-outline-primary"
+              onClick={() => setShowEditInfo(!showEditInfo)}
+            >
               Edit Exam Info
             </button>
 
@@ -56,13 +148,84 @@ function ExamManagement({ exam, onBack }) {
           </div>
         </div>
 
-        {/* פרטי המבחן */}
+        {showEditInfo && (
+          <div className="card border-primary mb-4">
+            <div className="card-body">
+              <h4>Edit Exam Info</h4>
+
+              <input
+                className="form-control mb-2"
+                placeholder="Exam title"
+                value={examInfo.title}
+                onChange={(e) =>
+                  setExamInfo({ ...examInfo, title: e.target.value })
+                }
+              />
+
+              <input
+                type="number"
+                className="form-control mb-2"
+                placeholder="Duration in minutes"
+                value={examInfo.duration}
+                onChange={(e) =>
+                  setExamInfo({ ...examInfo, duration: e.target.value })
+                }
+              />
+
+              <input
+                type="number"
+                className="form-control mb-2"
+                placeholder="Extra time in minutes"
+                value={examInfo.extraTime}
+                onChange={(e) =>
+                  setExamInfo({ ...examInfo, extraTime: e.target.value })
+                }
+              />
+
+              <input
+                className="form-control mb-2"
+                placeholder="Allowed materials"
+                value={examInfo.allowedMaterials}
+                onChange={(e) =>
+                  setExamInfo({
+                    ...examInfo,
+                    allowedMaterials: e.target.value,
+                  })
+                }
+              />
+
+              <input
+                className="form-control mb-3"
+                placeholder="Teacher availability"
+                value={examInfo.teacherAvailable}
+                onChange={(e) =>
+                  setExamInfo({
+                    ...examInfo,
+                    teacherAvailable: e.target.value,
+                  })
+                }
+              />
+
+              <button className="btn btn-success me-2" onClick={handleSaveExamInfo}>
+                Save Exam Info
+              </button>
+
+              <button
+                className="btn btn-outline-secondary"
+                onClick={() => setShowEditInfo(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="row mb-4">
           <div className="col-md-3 mb-3">
             <div className="card h-100 border-primary">
               <div className="card-body text-center">
                 <h6 className="text-muted">Exam Duration</h6>
-                <h4>{examDuration} min</h4>
+                <h4>{examInfo.duration} min</h4>
               </div>
             </div>
           </div>
@@ -71,7 +234,7 @@ function ExamManagement({ exam, onBack }) {
             <div className="card h-100 border-success">
               <div className="card-body text-center">
                 <h6 className="text-muted">Extra Time</h6>
-                <h4>{extraTime} min</h4>
+                <h4>{examInfo.extraTime} min</h4>
               </div>
             </div>
           </div>
@@ -96,36 +259,44 @@ function ExamManagement({ exam, onBack }) {
         </div>
 
         <div className="alert alert-info">
-          <strong>Allowed Materials:</strong> {allowedMaterials}
+          <strong>Allowed Materials:</strong> {examInfo.allowedMaterials}
           <br />
-          <strong>Teacher Availability:</strong> {teacherAvailable}
+          <strong>Teacher Availability:</strong> {examInfo.teacherAvailable}
         </div>
 
-        {/* אזור הוספת שאלה */}
         {showAddQuestion && (
           <div className="card border-primary mb-4">
             <div className="card-body">
               <h4>Add New Question</h4>
-              <p className="text-muted">
-                This is a preparation area for adding a new question in the future.
-              </p>
 
               <input
                 className="form-control mb-2"
                 placeholder="Question text"
+                value={newQuestion.text}
+                onChange={(e) =>
+                  setNewQuestion({ ...newQuestion, text: e.target.value })
+                }
               />
 
               <input
                 className="form-control mb-2"
-                placeholder="Answer options"
+                placeholder="Answer options separated by commas"
+                value={newQuestion.options}
+                onChange={(e) =>
+                  setNewQuestion({ ...newQuestion, options: e.target.value })
+                }
               />
 
               <input
                 className="form-control mb-3"
                 placeholder="Correct answer"
+                value={newQuestion.answer}
+                onChange={(e) =>
+                  setNewQuestion({ ...newQuestion, answer: e.target.value })
+                }
               />
 
-              <button className="btn btn-success me-2">
+              <button className="btn btn-success me-2" onClick={handleAddQuestion}>
                 Save Question
               </button>
 
@@ -139,11 +310,10 @@ function ExamManagement({ exam, onBack }) {
           </div>
         )}
 
-        {/* רשימת שאלות */}
         <h4 className="mb-3">Exam Questions</h4>
 
         <div className="list-group">
-          {exam.questions.map((question, index) => (
+          {localExam.questions.map((question, index) => (
             <div className="list-group-item mb-3 rounded" key={question.id}>
               <div className="d-flex justify-content-between align-items-start">
                 <div>
@@ -164,11 +334,7 @@ function ExamManagement({ exam, onBack }) {
 
                 <button
                   className="btn btn-outline-primary btn-sm"
-                  onClick={() =>
-                    setEditingQuestionId(
-                      editingQuestionId === question.id ? null : question.id
-                    )
-                  }
+                  onClick={() => startEditQuestion(question)}
                 >
                   Edit
                 </button>
@@ -180,20 +346,41 @@ function ExamManagement({ exam, onBack }) {
 
                   <input
                     className="form-control mb-2"
-                    defaultValue={question.text}
+                    value={editQuestion.text}
+                    onChange={(e) =>
+                      setEditQuestion({
+                        ...editQuestion,
+                        text: e.target.value,
+                      })
+                    }
                   />
 
                   <input
                     className="form-control mb-2"
-                    defaultValue={question.options?.join(', ')}
+                    value={editQuestion.options}
+                    onChange={(e) =>
+                      setEditQuestion({
+                        ...editQuestion,
+                        options: e.target.value,
+                      })
+                    }
                   />
 
                   <input
                     className="form-control mb-3"
-                    defaultValue={question.answer}
+                    value={editQuestion.answer}
+                    onChange={(e) =>
+                      setEditQuestion({
+                        ...editQuestion,
+                        answer: e.target.value,
+                      })
+                    }
                   />
 
-                  <button className="btn btn-success btn-sm me-2">
+                  <button
+                    className="btn btn-success btn-sm me-2"
+                    onClick={() => saveQuestionChanges(question.id)}
+                  >
                     Save Changes
                   </button>
 
