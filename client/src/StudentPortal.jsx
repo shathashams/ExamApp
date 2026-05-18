@@ -1,5 +1,5 @@
 // קומפוננטת פורטל תלמיד משופרת
-// מאפשרת לתלמיד להתחיל מבחן, לבחור תשובות, לעבור בין שאלות ולראות התקדמות
+// מאפשרת לתלמיד להתחיל מבחן, לבחור תשובות, לעבור בין שאלות, להגיש מבחן ולקבל ציון
 
 import { useState } from 'react'
 import { getExamById } from './api/examService'
@@ -10,6 +10,8 @@ function StudentPortal() {
   const [message, setMessage] = useState('')
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [selectedAnswers, setSelectedAnswers] = useState({})
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [score, setScore] = useState(0)
 
   // התחלת מבחן לפי מזהה שהמשתמש מכניס
   const handleStartExam = async () => {
@@ -31,6 +33,8 @@ function StudentPortal() {
     setMessage('')
     setCurrentQuestionIndex(0)
     setSelectedAnswers({})
+    setIsSubmitted(false)
+    setScore(0)
   }
 
   // יציאה מהמבחן וחזרה למסך התחלה
@@ -40,6 +44,8 @@ function StudentPortal() {
     setMessage('')
     setCurrentQuestionIndex(0)
     setSelectedAnswers({})
+    setIsSubmitted(false)
+    setScore(0)
   }
 
   // שמירת התשובה שנבחרה עבור שאלה מסוימת
@@ -63,6 +69,21 @@ function StudentPortal() {
       setCurrentQuestionIndex(currentQuestionIndex - 1)
     }
   }
+
+  // חישוב ציון לפי מספר התשובות הנכונות
+  const handleSubmitExam = () => {
+    let correctAnswers = 0
+
+    exam.questions.forEach((question) => {
+      if (selectedAnswers[question.id] === question.answer) {
+        correctAnswers += 1
+      }
+    })
+
+    setScore(correctAnswers)
+    setIsSubmitted(true)
+  }
+
 
   // מסך התחלה לפני טעינת מבחן
   if (!exam) {
@@ -99,6 +120,42 @@ function StudentPortal() {
   const progressPercent =
     ((currentQuestionIndex + 1) / exam.questions.length) * 100
 
+  const gradePercent = Math.round((score / exam.questions.length) * 100)
+
+  // מסך תוצאה אחרי הגשת המבחן
+  if (isSubmitted) {
+    return (
+      <div className="student-exam-page">
+        <div className="card shadow-sm">
+          <div className="card-body text-center p-5">
+            <h2 className="fw-bold mb-3">Exam Submitted ✅</h2>
+            <p className="text-muted mb-4">
+              Your answers were submitted successfully.
+            </p>
+
+            <div className="alert alert-primary">
+              <h4 className="mb-2">Your Score</h4>
+              <p className="mb-1">
+                Correct Answers: {score} / {exam.questions.length}
+              </p>
+              <p className="mb-0">
+                Grade: {gradePercent}%
+              </p>
+            </div>
+
+            <div className="d-flex justify-content-center gap-2 mt-4">
+
+
+              <button className="btn btn-outline-secondary" onClick={handleExitExam}>
+                Exit Exam
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="student-exam-page">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -121,8 +178,8 @@ function StudentPortal() {
           <h3 className="fw-bold">{exam.title}</h3>
 
           <div className="d-flex gap-3 text-muted small">
-            <span> May 9, 2026</span>
-            <span> {exam.questions.length} Questions</span>
+            <span>May 9, 2026</span>
+            <span>{exam.questions.length} Questions</span>
           </div>
         </div>
       </div>
@@ -181,13 +238,21 @@ function StudentPortal() {
               Previous
             </button>
 
-            <button
-              className="btn btn-primary"
-              onClick={handleNextQuestion}
-              disabled={currentQuestionIndex === exam.questions.length - 1}
-            >
-              Next Question →
-            </button>
+            {currentQuestionIndex === exam.questions.length - 1 ? (
+              <button
+                className="btn btn-success"
+                onClick={handleSubmitExam}
+              >
+                Submit Exam
+              </button>
+            ) : (
+              <button
+                className="btn btn-primary"
+                onClick={handleNextQuestion}
+              >
+                Next Question →
+              </button>
+            )}
           </div>
         </div>
       </div>
