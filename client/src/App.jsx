@@ -8,6 +8,7 @@ import NavigationMenu from './components/NavigationMenu'
 import TeacherDashboard from './teacherPages/TeacherDashboard'
 import CreateExam from './teacherPages/CreateExam'
 import StudentPortal from './studentPages/StudentPortal'
+import StudentResults from './studentPages/StudentResults'
 import './App.css'
 
 function App() {
@@ -22,8 +23,12 @@ function App() {
   const [activePage, setActivePage] = useState('teacherDashboard')
 
   // רשימת משתמשים זמנית בזיכרון
-  // Backendכרגע זה מדמה שמירת משתמשים, עד שיהיה  בעתיד
+  // Backendכרגע זה מדמה שמירת משתמשים, עד שיהיה   בעתיד
   const [users, setUsers] = useState([])
+
+  // שומר את תוצאות המבחנים שהתלמידים הגישו
+  // כל תוצאה כוללת שם תלמיד, שם מבחן, ציון ומספר שאלות
+  const [studentResults, setStudentResults] = useState([])
 
   // פונקציה שמטפלת בהתחברות המשתמש למערכת
   // לפי התפקיד שנבחר, היא מעבירה אותו לדף המתאים
@@ -54,6 +59,11 @@ function App() {
     } else {
       setActivePage('studentPortal')
     }
+  }
+
+  // שמירת תוצאה חדשה אחרי שהתלמיד מגיש מבחן
+  const handleSaveResult = (result) => {
+    setStudentResults([...studentResults, result])
   }
 
   // פונקציה שמנתקת את המשתמש ומחזירה אותו למסך ההתחברות
@@ -102,21 +112,21 @@ function App() {
         <CreateExam />
       )}
 
-      {/* הצגת פורטל התלמיד */}
+      {/* הצגת פורטל התלמיד ושליחת פונקציה לשמירת הציון */}
       {user.role === 'student' && activePage === 'studentPortal' && (
-        <StudentPortal />
+        <StudentPortal
+          username={user.username}
+          onSaveResult={handleSaveResult}
+        />
       )}
 
-      {/* דף תוצאות עתידי לתלמיד */}
+      {/* הצגת תוצאות המבחנים של התלמיד המחובר בלבד */}
       {user.role === 'student' && activePage === 'results' && (
-        <div className="card shadow-sm">
-          <div className="card-body text-center p-4">
-            <h2>Student Results</h2>
-            <p className="text-muted">
-              This page will show previous exam results in the future.
-            </p>
-          </div>
-        </div>
+        <StudentResults
+          results={studentResults.filter(
+            (result) => result.studentName === user.username
+          )}
+        />
       )}
     </div>
   )
