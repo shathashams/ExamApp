@@ -4,11 +4,10 @@
 import { useState } from 'react'
 import { getExamById } from '../api/examService'
 
-function StudentPortal() {
+function StudentPortal({ username, onSaveResult }) {
   // שומר את מספר המבחן שהתלמיד מקליד
   const [examId, setExamId] = useState('')
 
-  // Mock APIשומר את המבחן שנבחר אחרי טעינה מה-
   const [exam, setExam] = useState(null)
 
   // שומר הודעת שגיאה או הודעה למשתמש
@@ -84,7 +83,6 @@ function StudentPortal() {
     }
   }
 
-  // חישוב ציון לפי מספר התשובות הנכונות
   const handleSubmitExam = () => {
     let correctAnswers = 0
 
@@ -94,8 +92,21 @@ function StudentPortal() {
       }
     })
 
+    const gradePercent = Math.round(
+      (correctAnswers / exam.questions.length) * 100
+    )
+
     setScore(correctAnswers)
     setIsSubmitted(true)
+
+    onSaveResult({
+      id: Date.now(),
+      studentName: username,
+      examTitle: exam.title,
+      score: correctAnswers,
+      totalQuestions: exam.questions.length,
+      grade: gradePercent,
+    })
   }
 
   // מסך התחלה לפני טעינת מבחן
@@ -123,9 +134,7 @@ function StudentPortal() {
           {/* הצגת הודעה אם לא הוזן מזהה או אם המבחן לא נמצא */}
           {message && <div className="alert alert-warning">{message}</div>}
 
-          <div className="text-muted small">
-            Try exam IDs: 1, 2, or 3
-          </div>
+          <div className="text-muted small">Try exam IDs: 1, 2, or 3</div>
         </div>
       </div>
     )
@@ -158,9 +167,7 @@ function StudentPortal() {
               <p className="mb-1">
                 Correct Answers: {score} / {exam.questions.length}
               </p>
-              <p className="mb-0">
-                Grade: {gradePercent}%
-              </p>
+              <p className="mb-0">Grade: {gradePercent}%</p>
             </div>
 
             <div className="d-flex justify-content-center gap-2 mt-4">
@@ -267,17 +274,11 @@ function StudentPortal() {
 
             {/* בשאלה האחרונה  Submit Exam במקום Next Question */}
             {currentQuestionIndex === exam.questions.length - 1 ? (
-              <button
-                className="btn btn-success"
-                onClick={handleSubmitExam}
-              >
+              <button className="btn btn-success" onClick={handleSubmitExam}>
                 Submit Exam
               </button>
             ) : (
-              <button
-                className="btn btn-primary"
-                onClick={handleNextQuestion}
-              >
+              <button className="btn btn-primary" onClick={handleNextQuestion}>
                 Next Question →
               </button>
             )}
