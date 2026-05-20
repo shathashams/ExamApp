@@ -1,0 +1,118 @@
+UML Diagram - Main Classes and Services
+
+Class: ConfigService
+Attributes:
+- appName
+- defaultExamTimeMinutes
+- extraTimeMinutes
+- teacherAvailableMinutes
+
+Methods:
+- getAppName()
+- getDefaultExamTime()
+- getExtraTime()
+- getTeacherAvailableTime()
+
+Purpose:
+Stores general configuration values for the application.
+
+
+Class: LoggerService
+Methods:
+- info(message)
+- warning(message)
+- error(message)
+
+Purpose:
+Prints development messages to the browser console.
+
+
+Class: StorageService
+Methods:
+- save(key, value)
+- get(key)
+- remove(key)
+- clear()
+
+Purpose:
+Handles saving and reading data from localStorage.
+
+
+Class: NotifyService
+Methods:
+- success(message)
+- error(message)
+- info(message)
+
+Purpose:
+Shows simple notification messages to the user.
+
+
+Module: examService
+Functions:
+- getAllExams()
+- getExamById(id)
+- createExam(exam)
+
+Purpose:
+Simulates API calls and returns data from the mock database.
+
+
+Component: App
+State:
+- user
+- authMode
+- activePage
+- users
+- studentResults
+
+Main Functions:
+- handleLogin()
+- handleRegister()
+- handleLogout()
+- handleSaveResult()
+
+Purpose:
+Controls the main flow of the application.
+
+
+Component: StudentPortal
+State:
+- examId
+- exam
+- message
+- currentQuestionIndex
+- selectedAnswers
+- isSubmitted
+- score
+
+Main Functions:
+- handleStartExam()
+- handleExitExam()
+- handleSelectAnswer()
+- handleNextQuestion()
+- handlePreviousQuestion()
+- handleSubmitExam()
+
+Purpose:
+Allows the student to take an exam and submit answers.
+
+
+Component: ExamManagement
+State:
+- localExam
+- showAddQuestion
+- showEditInfo
+- editingQuestionId
+- examInfo
+- newQuestion
+- editQuestion
+
+Main Functions:
+- startEditQuestion()
+- saveQuestionChanges()
+- handleAddQuestion()
+- handleSaveExamInfo()
+
+Purpose:
+Allows the teacher to manage exam details and questions.

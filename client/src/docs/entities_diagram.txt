@@ -1,0 +1,95 @@
+Main Entities Used by Mock DB and Views
+
+Entity: User
+Fields:
+- username
+- password
+- role
+
+Role values:
+- teacher
+- student
+
+Used in:
+- Login
+- Register
+- NavigationMenu
+- App
+
+
+Entity: Exam
+Fields:
+- id
+- title
+- questions
+
+Relationship:
+One Exam has many Questions.
+
+Used in:
+- TeacherDashboard
+- ExamManagement
+- StudentPortal
+- StudentResults
+
+
+Entity: Question
+Fields:
+- id
+- text
+- options
+- answer
+
+Relationship:
+Each Question belongs to one Exam.
+Each Question has many Answer Options.
+Each Question has one correct answer.
+
+Used in:
+- ExamManagement
+- StudentPortal
+
+
+Entity: Answer Option
+Fields:
+- option text
+
+Relationship:
+Each Answer Option belongs to one Question.
+
+Used in:
+- StudentPortal
+- ExamManagement
+
+
+Entity: StudentResult
+Fields:
+- id
+- studentName
+- examTitle
+- score
+- totalQuestions
+- grade
+
+Relationship:
+Each StudentResult belongs to one Student and one Exam.
+
+Used in:
+- StudentPortal
+- StudentResults
+
+
+Simple Entity Relationship:
+
+User
+│
+├── Teacher
+│   └── manages Exam
+│
+└── Student
+    └── submits Exam
+          └── creates StudentResult
+
+Exam
+└── has many Questions
+      └── has many Answer Options
