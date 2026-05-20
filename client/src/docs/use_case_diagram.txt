@@ -1,0 +1,63 @@
+Use Case Diagram - E-Test System
+
+Actors:
+1. Teacher
+2. Student
+
+Teacher Use Cases:
+- Login
+- Register
+- View teacher dashboard
+- View list of exams
+- Manage exam
+- Edit exam information
+- Add new question
+- Edit existing question
+- View question details
+- Logout
+
+Student Use Cases:
+- Login
+- Register
+- Open student portal
+- Enter exam ID
+- Start exam
+- Answer questions
+- Move to next question
+- Go back to previous question
+- Submit exam
+- View score
+- View results
+- Logout
+
+Text Diagram:
+
+Teacher
+  |
+  |-- Login
+  |-- Register
+  |-- View Exams
+  |-- Manage Exam
+        |-- Edit Exam Info
+        |-- Add Question
+        |-- Edit Question
+  |-- Logout
+
+
+Student
+  |
+  |-- Login
+  |-- Register
+  |-- Start Exam
+        |-- Answer Questions
+        |-- Submit Exam
+        |-- View Score
+  |-- View Results
+  |-- Logout
+
+System:
+- Authenticates users by role
+- Loads exams from Mock API
+- Displays pages based on user role
+- Calculates student score
+- Saves student results during the session

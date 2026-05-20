@@ -1,0 +1,49 @@
+Components Hierarchy
+
+App
+│
+├── NavigationMenu
+│
+├── Auth
+│   ├── Login
+│   └── Register
+│
+├── Teacher Pages
+│   ├── TeacherDashboard
+│   │   └── ExamManagement
+│   ├── CreateExam
+│   └── EditExam
+│
+├── Student Pages
+│   ├── StudentPortal
+│   └── StudentResults
+│
+├── API
+│   ├── examService
+│   └── mockDb
+│
+└── Services
+    ├── ConfigService
+    ├── LoggerService
+    ├── StorageService
+    └── NotifyService
+
+Explanation:
+
+App is the main component of the project.
+It controls login, register, navigation, and which page is displayed.
+
+NavigationMenu shows buttons based on the user role.
+
+Login and Register handle authentication screens.
+
+TeacherDashboard shows all exams for the teacher.
+ExamManagement allows the teacher to view and edit exam information and questions.
+
+StudentPortal allows the student to start and submit an exam.
+StudentResults shows the grades of submitted exams.
+
+examService simulates API calls.
+mockDb stores fake exam data.
+
+The services folder contains reusable service classes used to keep the code modular.

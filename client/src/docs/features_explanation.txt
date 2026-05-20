@@ -1,0 +1,81 @@
+E-Test System - Features Explanation
+
+This project is an online exam system built with React, Bootstrap, Mock API, and local services.
+
+Users:
+1. Teacher
+2. Student
+
+Main Features:
+
+1. Authentication
+The system includes Login and Register screens.
+The user can choose a role: Teacher or Student.
+After login, the system shows pages according to the selected role.
+
+2. Teacher Pages
+The teacher can view all available exams.
+The teacher can click Manage Exam to see exam details.
+Inside Manage Exam, the teacher can:
+- View exam duration
+- View extra time
+- View number of questions
+- View allowed materials
+- View teacher availability
+- Add a new question
+- Edit an existing question
+- Edit exam information
+
+3. Student Pages
+The student can enter an exam ID and start an exam.
+The student can answer multiple-choice questions.
+The student can move between questions using Previous and Next.
+On the last question, the student can submit the exam.
+After submission, the system calculates the score and shows the grade.
+
+4. Student Results
+The system saves the student result during the session.
+The student can open the Results page and see submitted exam results.
+
+5. Navigation Menu
+The navigation menu changes according to the user role.
+Teacher users see Teacher Dashboard and Create Exam.
+Student users see Student Portal and Results.
+
+6. Mock API and Mock Database
+The project uses mockDb.js as a fake database.
+The examService.js file simulates API calls and returns exams from the mock database.
+
+7. Services
+The project includes generic services:
+- ConfigService: stores app configuration values.
+- LoggerService: prints messages to the console.
+- StorageService: saves and reads data from localStorage.
+- NotifyService: shows simple messages to the user.
+
+Use Cases:
+
+Teacher:
+- Login as teacher
+- View all exams
+- Manage an exam
+- Edit exam information
+- Add a question
+- Edit a question
+
+Student:
+- Login as student
+- Start exam by ID
+- Answer questions
+- Submit exam
+- View score
+- View results
+
+Pages:
+- Login page
+- Register page
+- Teacher Dashboard
+- Exam Management page
+- Create Exam page
+- Student Portal
+- Student Results page
