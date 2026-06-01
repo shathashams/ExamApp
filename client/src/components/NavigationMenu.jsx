@@ -28,7 +28,16 @@ function NavigationMenu({ user, activePage, onNavigate, onLogout }) {
               >
                 Teacher Dashboard
               </button>
-
+              <button
+                className={`btn ${
+                  activePage === 'teacherStudentResults'
+                  ? 'btn-primary'
+                 : 'btn-outline-primary'
+               }`}
+               onClick={() => onNavigate('teacherStudentResults')}
+             >
+               Student Results
+              </button>
               <button
                 className={`btn ${
                   activePage === 'createExam'

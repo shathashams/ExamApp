@@ -9,6 +9,7 @@ import TeacherDashboard from './teacherPages/TeacherDashboard'
 import CreateExam from './teacherPages/CreateExam'
 import StudentPortal from './studentPages/StudentPortal'
 import StudentResults from './studentPages/StudentResults'
+import TeacherStudentResults from './teacherPages/TeacherStudentResults'
 import './App.css'
 
 function App() {
@@ -106,6 +107,10 @@ function App() {
       {/* הצגת דף יצירת מבחן למורה */}
       {user.role === 'teacher' && activePage === 'createExam' && (
         <CreateExam onExamCreated={() => setActivePage('teacherDashboard')} />
+      )}
+      {/* הצגת ציוני תלמידים למורה */}
+      {user.role === 'teacher' && activePage === 'teacherStudentResults' && (
+           <TeacherStudentResults results={studentResults} />
       )}
 
       {/* הצגת פורטל התלמיד ושליחת פונקציה לשמירת הציון */}
