@@ -19,19 +19,16 @@ function App() {
   const [authMode, setAuthMode] = useState('login')
 
   // שומר איזה דף מוצג כרגע אחרי ההתחברות
-  // לדוגמה: דף מורה, יצירת מבחן, פורטל תלמיד או תוצאות
   const [activePage, setActivePage] = useState('teacherDashboard')
 
   // רשימת משתמשים זמנית בזיכרון
-  // Backendכרגע זה מדמה שמירת משתמשים, עד שיהיה   בעתיד
+  // כרגע זה מדמה שמירת משתמשים, עד שיהיה Backend אמיתי בעתיד
   const [users, setUsers] = useState([])
 
   // שומר את תוצאות המבחנים שהתלמידים הגישו
-  // כל תוצאה כוללת שם תלמיד, שם מבחן, ציון ומספר שאלות
   const [studentResults, setStudentResults] = useState([])
 
-  // פונקציה שמטפלת בהתחברות המשתמש למערכת
-  // לפי התפקיד שנבחר, היא מעבירה אותו לדף המתאים
+  // התחברות למערכת והעברה לדף המתאים לפי התפקיד
   const handleLogin = (userData) => {
     setUser(userData)
 
@@ -42,8 +39,7 @@ function App() {
     }
   }
 
-  // פונקציה שמטפלת בהרשמה של משתמש חדש
-  // היא מוסיפה את המשתמש לרשימה הזמנית ומכניסה אותו למערכת
+  // הרשמה של משתמש חדש והכנסתו למערכת
   const handleRegister = (newUser) => {
     setUsers([...users, newUser])
 
@@ -66,14 +62,14 @@ function App() {
     setStudentResults([...studentResults, result])
   }
 
-  // פונקציה שמנתקת את המשתמש ומחזירה אותו למסך ההתחברות
+  // יציאה מהמערכת וחזרה למסך ההתחברות
   const handleLogout = () => {
     setUser(null)
     setAuthMode('login')
     setActivePage('teacherDashboard')
   }
 
-  // אם אין משתמש מחובר, מציגים את מסכי ההתחברות או ההרשמה
+  // אם אין משתמש מחובר, מציגים Login או Register
   if (!user) {
     if (authMode === 'register') {
       return (
@@ -109,7 +105,7 @@ function App() {
 
       {/* הצגת דף יצירת מבחן למורה */}
       {user.role === 'teacher' && activePage === 'createExam' && (
-        <CreateExam />
+        <CreateExam onExamCreated={() => setActivePage('teacherDashboard')} />
       )}
 
       {/* הצגת פורטל התלמיד ושליחת פונקציה לשמירת הציון */}
