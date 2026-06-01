@@ -32,3 +32,13 @@ export const createExam = async (exam) => {
   exams.push(newExam)
   return delay(newExam)
 }
+// idמעדכנת מבחן קיים במאגר המדומה לפי 
+export const updateExam = async (updatedExam) => {
+  const examIndex = exams.findIndex((exam) => exam.id === updatedExam.id)
+
+  if (examIndex !== -1) {
+    exams[examIndex] = updatedExam
+  }
+
+  return delay(updatedExam)
+}

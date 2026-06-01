@@ -2,9 +2,10 @@
 // מאפשר צפייה בפרטי מבחן, עריכת שאלות, הוספת שאלה ועריכת מידע בסיסי של המבחן
 
 import { useState } from 'react'
+import { updateExam } from '../api/examService'
 
 function ExamManagement({ exam, onBack }) {
-  // שומר עותק מקומי של המבחן כדי לאפשר שינויים במסך בלי לשנות את ה-DB המדומה ישירות
+  // שומר עותק מקומי של המבחן כדי לאפשר שינויים במסך
   const [localExam, setLocalExam] = useState(exam)
 
   // קובע אם להציג את טופס הוספת השאלה
@@ -19,10 +20,10 @@ function ExamManagement({ exam, onBack }) {
   // שמירת פרטי המבחן הכלליים שמוצגים למורה
   const [examInfo, setExamInfo] = useState({
     title: exam?.title || '',
-    duration: 60,
-    extraTime: 15,
-    allowedMaterials: 'Calculator and course notes',
-    teacherAvailable: 'First 20 minutes of the exam',
+    duration: exam?.duration || 60,
+    extraTime: exam?.extraTime || 15,
+    allowedMaterials: exam?.allowedMaterials || 'No materials',
+    teacherAvailable: exam?.teacherAvailable || 'First 20 minutes of the exam',
   })
 
   // שמירת הערכים שהמורה מכניס בטופס הוספת שאלה חדשה
@@ -66,8 +67,8 @@ function ExamManagement({ exam, onBack }) {
     })
   }
 
-  // שמירת שינויי שאלה בתוך local state
-  const saveQuestionChanges = (questionId) => {
+  // שמירת שינויי שאלה ועדכון המבחן במאגר המדומה
+  const saveQuestionChanges = async (questionId) => {
     const updatedQuestions = localExam.questions.map((question) => {
       if (question.id !== questionId) {
         return question
@@ -81,16 +82,18 @@ function ExamManagement({ exam, onBack }) {
       }
     })
 
-    setLocalExam({
+    const updatedExam = {
       ...localExam,
       questions: updatedQuestions,
-    })
+    }
 
+    await updateExam(updatedExam)
+    setLocalExam(updatedExam)
     setEditingQuestionId(null)
   }
 
-  // הוספת שאלה חדשה למבחן אחרי בדיקה שכל השדות מולאו
-  const handleAddQuestion = () => {
+  // הוספת שאלה חדשה למבחן ועדכון המאגר המדומה
+  const handleAddQuestion = async () => {
     if (!newQuestion.text || !newQuestion.options || !newQuestion.answer) {
       alert('Please fill all question fields.')
       return
@@ -103,10 +106,13 @@ function ExamManagement({ exam, onBack }) {
       answer: newQuestion.answer,
     }
 
-    setLocalExam({
+    const updatedExam = {
       ...localExam,
       questions: [...localExam.questions, questionToAdd],
-    })
+    }
+
+    await updateExam(updatedExam)
+    setLocalExam(updatedExam)
 
     setNewQuestion({
       text: '',
@@ -117,13 +123,19 @@ function ExamManagement({ exam, onBack }) {
     setShowAddQuestion(false)
   }
 
-  // שמירת מידע כללי של המבחן, כמו שם המבחן, זמן וחומר עזר
-  const handleSaveExamInfo = () => {
-    setLocalExam({
+  // שמירת מידע כללי של המבחן ועדכון המאגר המדומה
+  const handleSaveExamInfo = async () => {
+    const updatedExam = {
       ...localExam,
       title: examInfo.title,
-    })
+      duration: Number(examInfo.duration),
+      extraTime: Number(examInfo.extraTime),
+      allowedMaterials: examInfo.allowedMaterials,
+      teacherAvailable: examInfo.teacherAvailable,
+    }
 
+    await updateExam(updatedExam)
+    setLocalExam(updatedExam)
     setShowEditInfo(false)
   }
 
