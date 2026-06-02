@@ -1,5 +1,5 @@
 // קומפוננטה זו מציגה למורה את רשימת המבחנים במערכת
-// בנוסף, היא מאפשרת למורה להיכנס לדף ניהול של מבחן מסוים
+// המידע נטען מה-Mock API או מה-Server לפי ההגדרה ב-ConfigService
 
 import { useEffect, useState } from 'react'
 import { getAllExams } from '../api/examService'
@@ -9,27 +9,37 @@ function TeacherDashboard() {
   const [exams, setExams] = useState([])
   const [selectedExam, setSelectedExam] = useState(null)
 
-  // בעת טעינת המסך, המערכת מביאה את רשימת המבחנים מהשירות המדומה
-  useEffect(() => {
-    const loadExams = async () => {
-      const data = await getAllExams()
-      setExams(data)
-    }
+  // טעינת רשימת המבחנים מהשירות
+  const loadExams = async () => {
+    const data = await getAllExams()
+    setExams(data)
+  }
 
-    loadExams()
-  }, [])
+  // בעת טעינת המסך, המערכת מביאה את רשימת המבחנים
+ // בעת טעינת המסך, המערכת מביאה את רשימת המבחנים
+useEffect(() => {
+  const fetchExams = async () => {
+    await loadExams()
+  }
 
-  // אם המורה בחר מבחן, מציגים את דף ניהול המבחן
+  fetchExams()
+}, [])
+
+  // חזרה ממסך ניהול מבחן לדשבורד וטעינה מחדש של המידע
+  const handleBackToDashboard = async () => {
+    setSelectedExam(null)
+    await loadExams()
+  }
+
   if (selectedExam) {
     return (
       <ExamManagement
         exam={selectedExam}
-        onBack={() => setSelectedExam(null)}
+        onBack={handleBackToDashboard}
       />
     )
   }
 
-  // הצגת המבחנים ככרטיסים בעזרת Bootstrap
   return (
     <div className="card shadow-sm">
       <div className="card-body">
@@ -47,6 +57,10 @@ function TeacherDashboard() {
                     Questions: {exam.questions.length}
                   </p>
 
+                  <p className="text-muted mb-2">
+                    Duration: {exam.duration || 60} min
+                  </p>
+
                   <button
                     className="btn btn-primary"
                     onClick={() => setSelectedExam(exam)}
@@ -58,6 +72,12 @@ function TeacherDashboard() {
             </div>
           ))}
         </div>
+
+        {exams.length === 0 && (
+          <div className="alert alert-warning">
+            No exams found.
+          </div>
+        )}
       </div>
     </div>
   )
