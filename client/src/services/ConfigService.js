@@ -7,6 +7,14 @@ class ConfigService {
     this.defaultExamTimeMinutes = 60
     this.extraTimeMinutes = 15
     this.teacherAvailableMinutes = 20
+
+    // מצב עבודה של האפליקציה:
+    // FULLCLIENT = עבודה מול mockDb בתוך ה-Client
+    // SERVER = עבודה מול שרת API באמצעות fetch
+    this.dataMode = 'SERVER'
+
+    // כתובת השרת המקומי
+    this.apiBaseUrl = 'http://localhost:3001/api'
   }
 
   getAppName() {
@@ -23,6 +31,14 @@ class ConfigService {
 
   getTeacherAvailableTime() {
     return this.teacherAvailableMinutes
+  }
+
+  getDataMode() {
+    return this.dataMode
+  }
+
+  getApiBaseUrl() {
+    return this.apiBaseUrl
   }
 }
 
