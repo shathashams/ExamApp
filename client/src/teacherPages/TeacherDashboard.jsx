@@ -1,5 +1,5 @@
 // קומפוננטה זו מציגה למורה את רשימת המבחנים במערכת
-// המידע נטען מה-Mock API או מה-Server לפי ההגדרה ב-ConfigService
+// המידע נטען מה-Mock API
 
 import { useEffect, useState } from 'react'
 import { getAllExams } from '../api/examService'
