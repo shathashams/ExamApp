@@ -10,6 +10,8 @@ import CreateExam from './teacherPages/CreateExam'
 import StudentPortal from './studentPages/StudentPortal'
 import StudentResults from './studentPages/StudentResults'
 import TeacherStudentResults from './teacherPages/TeacherStudentResults'
+import ConfigService from './services/ConfigService'
+import * as authService from './api/authService'
 import './App.css'
 
 function App() {
@@ -22,15 +24,52 @@ function App() {
   // שומר איזה דף מוצג כרגע אחרי ההתחברות
   const [activePage, setActivePage] = useState('teacherDashboard')
 
-  // רשימת משתמשים זמנית בזיכרון
-  // כרגע זה מדמה שמירת משתמשים, עד שיהיה Backend אמיתי בעתיד
-  const [users, setUsers] = useState([])
+  // שומר את מצב מקור הנתונים: FULLCLIENT או SERVER
+  const [dataMode, setDataMode] = useState(ConfigService.getDataMode())
 
   // שומר את תוצאות המבחנים שהתלמידים הגישו
   const [studentResults, setStudentResults] = useState([])
 
-  // התחברות למערכת והעברה לדף המתאים לפי התפקיד
-  const handleLogin = (userData) => {
+  // שינוי מקור הנתונים של האפליקציה
+  const handleDataModeChange = (mode) => {
+    ConfigService.setDataMode(mode)
+    setDataMode(mode)
+    setActivePage('teacherDashboard')
+  }
+
+  // בורר מקור הנתונים - מוצג בכל מסך כולל Login
+  const renderDataModeSelector = () => (
+    <div className="card shadow-sm mb-3">
+      <div className="card-body d-flex justify-content-between align-items-center py-2">
+        <div>
+          <strong>Data Source:</strong>{' '}
+          <span className={dataMode === 'SERVER' ? 'text-success' : 'text-primary'}>
+            {dataMode === 'SERVER' ? '🟢 Server API (localhost:3001)' : '🔵 Client Mock DB'}
+          </span>
+        </div>
+        <div>
+          <button
+            id="btn-mode-client"
+            className={`btn btn-sm me-2 ${dataMode === 'FULLCLIENT' ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => handleDataModeChange('FULLCLIENT')}
+          >
+            Client Only
+          </button>
+          <button
+            id="btn-mode-server"
+            className={`btn btn-sm ${dataMode === 'SERVER' ? 'btn-success' : 'btn-outline-success'}`}
+            onClick={() => handleDataModeChange('SERVER')}
+          >
+            Server
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
+  // התחברות - קריאה ל-authService שמנתב ל-Server או ל-Mock לפי המצב
+  const handleLogin = async (username, password, role) => {
+    const userData = await authService.login(username, password, role)
     setUser(userData)
 
     if (userData.role === 'teacher') {
@@ -40,18 +79,12 @@ function App() {
     }
   }
 
-  // הרשמה של משתמש חדש והכנסתו למערכת
-  const handleRegister = (newUser) => {
-    setUsers([...users, newUser])
+  // הרשמה - קריאה ל-authService שמנתב ל-Server או ל-Mock לפי המצב
+  const handleRegister = async (username, password, fullName, role) => {
+    const userData = await authService.register(username, password, fullName, role)
+    setUser(userData)
 
-    const loggedUser = {
-      username: newUser.username,
-      role: newUser.role,
-    }
-
-    setUser(loggedUser)
-
-    if (newUser.role === 'teacher') {
+    if (userData.role === 'teacher') {
       setActivePage('teacherDashboard')
     } else {
       setActivePage('studentPortal')
@@ -71,21 +104,24 @@ function App() {
   }
 
   // אם אין משתמש מחובר, מציגים Login או Register
+  // אם אין משתמש מחובר, מציגים את הבאנר + Login או Register
   if (!user) {
-    if (authMode === 'register') {
-      return (
-        <Register
-          onRegister={handleRegister}
-          onSwitchToLogin={() => setAuthMode('login')}
-        />
-      )
-    }
-
     return (
-      <Login
-        onLogin={handleLogin}
-        onSwitchToRegister={() => setAuthMode('register')}
-      />
+      <div className="container mt-4">
+        {renderDataModeSelector()}
+
+        {authMode === 'register' ? (
+          <Register
+            onRegister={handleRegister}
+            onSwitchToLogin={() => setAuthMode('login')}
+          />
+        ) : (
+          <Login
+            onLogin={handleLogin}
+            onSwitchToRegister={() => setAuthMode('register')}
+          />
+        )}
+      </div>
     )
   }
 
@@ -108,9 +144,10 @@ function App() {
       {user.role === 'teacher' && activePage === 'createExam' && (
         <CreateExam onExamCreated={() => setActivePage('teacherDashboard')} />
       )}
+
       {/* הצגת ציוני תלמידים למורה */}
       {user.role === 'teacher' && activePage === 'teacherStudentResults' && (
-           <TeacherStudentResults results={studentResults} />
+        <TeacherStudentResults results={studentResults} />
       )}
 
       {/* הצגת פורטל התלמיד ושליחת פונקציה לשמירת הציון */}

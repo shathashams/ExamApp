@@ -134,7 +134,7 @@ function StudentPortal({ username, onSaveResult }) {
           {/* הצגת הודעה אם לא הוזן מזהה או אם המבחן לא נמצא */}
           {message && <div className="alert alert-warning">{message}</div>}
 
-          <div className="text-muted small">Try exam IDs: 1, 2, or 3</div>
+          <div className="text-muted small">Try exam ID</div>
         </div>
       </div>
     )
@@ -232,11 +232,10 @@ function StudentPortal({ username, onSaveResult }) {
               <button
                 key={option}
                 type="button"
-                className={`answer-option ${
-                  selectedAnswers[currentQuestion.id] === option
-                    ? 'answer-option-selected'
-                    : ''
-                }`}
+                className={`answer-option ${selectedAnswers[currentQuestion.id] === option
+                  ? 'answer-option-selected'
+                  : ''
+                  }`}
                 onClick={() => handleSelectAnswer(currentQuestion.id, option)}
               >
                 <span className="answer-circle"></span>

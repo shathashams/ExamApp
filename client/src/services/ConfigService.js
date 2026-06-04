@@ -7,6 +7,12 @@ class ConfigService {
     this.defaultExamTimeMinutes = 60
     this.extraTimeMinutes = 15
     this.teacherAvailableMinutes = 20
+
+    // כתובת השרת המקומי
+    this.apiBaseUrl = 'http://localhost:3001/api'
+
+    // מצב ברירת המחדל: FULLCLIENT = עבודה מול mockDb ללא שרת
+    this.defaultDataMode = 'FULLCLIENT'
   }
 
   getAppName() {
@@ -23,6 +29,30 @@ class ConfigService {
 
   getTeacherAvailableTime() {
     return this.teacherAvailableMinutes
+  }
+
+  getApiBaseUrl() {
+    return this.apiBaseUrl
+  }
+
+  // מחזיר את מצב העבודה הנוכחי מ-localStorage, או ברירת המחדל
+  getDataMode() {
+    return localStorage.getItem('dataMode') || this.defaultDataMode
+  }
+
+  // שומר את מצב העבודה ב-localStorage
+  setDataMode(mode) {
+    localStorage.setItem('dataMode', mode)
+  }
+
+  // האם עובדים מול שרת אמיתי?
+  isServerMode() {
+    return this.getDataMode() === 'SERVER'
+  }
+
+  // האם עובדים מול Mock Client בלבד?
+  isFullClientMode() {
+    return this.getDataMode() === 'FULLCLIENT'
   }
 }
 

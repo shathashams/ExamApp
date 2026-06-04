@@ -1,29 +1,37 @@
-// קומפוננטת הרשמה פשוטה למערכת
-// המשתמש יוצר חשבון עם שם משתמש, סיסמה ובחירת תפקיד
+// קומפוננטת הרשמה למערכת
+// המשתמש יוצר חשבון עם שם מלא, שם משתמש, סיסמה ובחירת תפקיד
 
 import { useState } from 'react'
 
 function Register({ onRegister, onSwitchToLogin }) {
+  const [fullName, setFullName] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [role, setRole] = useState('student')
+
+  // שמירת הודעת שגיאה ומצב טעינה
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   // פונקציה שמופעלת כאשר המשתמש לוחץ על Register
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setError('')
 
-    if (!username.trim() || !password.trim()) {
-      setError('Please enter username and password.')
+    if (!fullName.trim() || !username.trim() || !password.trim()) {
+      setError('Please fill in all fields.')
       return
     }
 
-    // שליחת פרטי המשתמש החדש לקומפוננטה הראשית
-    onRegister({
-      username,
-      password,
-      role,
-    })
+    setLoading(true)
+    try {
+      // שליחת הפרטים לקומפוננטה הראשית - onRegister כעת async
+      await onRegister(username, password, fullName, role)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -38,10 +46,22 @@ function Register({ onRegister, onSwitchToLogin }) {
             </p>
           </div>
 
-          {/* הצגת שגיאה אם המשתמש לא מילא פרטים */}
+          {/* הצגת שגיאה */}
           {error && <div className="alert alert-danger">{error}</div>}
 
           <form onSubmit={handleSubmit}>
+            {/* שם מלא */}
+            <div className="mb-3">
+              <label className="form-label">Full Name</label>
+              <input
+                type="text"
+                className="form-control form-control-lg"
+                placeholder="Enter your full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            </div>
+
             {/* שם משתמש חדש */}
             <div className="mb-3">
               <label className="form-label">Username</label>
@@ -72,19 +92,14 @@ function Register({ onRegister, onSwitchToLogin }) {
               <div className="btn-group w-100">
                 <button
                   type="button"
-                  className={`btn ${
-                    role === 'teacher' ? 'btn-primary' : 'btn-outline-primary'
-                  }`}
+                  className={`btn ${role === 'teacher' ? 'btn-primary' : 'btn-outline-primary'}`}
                   onClick={() => setRole('teacher')}
                 >
                   Teacher
                 </button>
-
                 <button
                   type="button"
-                  className={`btn ${
-                    role === 'student' ? 'btn-success' : 'btn-outline-success'
-                  }`}
+                  className={`btn ${role === 'student' ? 'btn-success' : 'btn-outline-success'}`}
                   onClick={() => setRole('student')}
                 >
                   Student
@@ -92,12 +107,16 @@ function Register({ onRegister, onSwitchToLogin }) {
               </div>
             </div>
 
-            <button type="submit" className="btn btn-success btn-lg w-100">
-              Register
+            <button
+              type="submit"
+              className="btn btn-success btn-lg w-100"
+              disabled={loading}
+            >
+              {loading ? 'Creating account...' : 'Register'}
             </button>
           </form>
 
-          {/* Loginמעבר למסך  */}
+          {/* מעבר למסך Login */}
           <div className="text-center mt-3">
             <button
               className="btn btn-link"

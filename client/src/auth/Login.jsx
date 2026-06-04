@@ -1,7 +1,8 @@
 // קומפוננטת התחברות למערכת המבחנים
-// המשתמש מכניס שם, סיסמה ובוחר תפקיד: מורה או תלמיד
+// המשתמש מכניס שם משתמש וסיסמה - התפקיד מגיע מה-DB בצד שרת
 
 import { useState } from 'react'
+import ConfigService from '../services/ConfigService'
 
 function Login({ onLogin, onSwitchToRegister }) {
   // שמירת הערכים שהמשתמש מכניס בטופס
@@ -9,23 +10,32 @@ function Login({ onLogin, onSwitchToRegister }) {
   const [password, setPassword] = useState('')
   const [role, setRole] = useState('teacher')
 
-  // שמירת הודעת שגיאה במקרה שהמשתמש לא מילא פרטים
+  // שמירת הודעת שגיאה ומצב טעינה
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  // Loginפונקציה שמופעלת כאשר המשתמש לוחץ על 
-  const handleSubmit = (e) => {
+  // במצב שרת התפקיד מגיע מה-DB ולא מבחירת המשתמש
+  const serverMode = ConfigService.isServerMode()
+
+  // פונקציה שמופעלת כאשר המשתמש לוחץ על Login
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setError('')
 
     if (!username.trim() || !password.trim()) {
       setError('Please enter username and password.')
       return
     }
 
-    // שליחת פרטי המשתמש לקומפוננטה הראשית 
-    onLogin({
-      username,
-      role,
-    })
+    setLoading(true)
+    try {
+      // שליחת הפרטים לקומפוננטה הראשית - onLogin כעת async
+      await onLogin(username, password, role)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -40,7 +50,7 @@ function Login({ onLogin, onSwitchToRegister }) {
             </p>
           </div>
 
-          {/* הצגת הודעת שגיאה אם המשתמש לא מילא שם או סיסמה */}
+          {/* הצגת הודעת שגיאה */}
           {error && <div className="alert alert-danger">{error}</div>}
 
           <form onSubmit={handleSubmit}>
@@ -68,40 +78,46 @@ function Login({ onLogin, onSwitchToRegister }) {
               />
             </div>
 
-            {/* בחירת תפקיד המשתמש במערכת */}
-            <div className="mb-4">
-              <label className="form-label">Choose role</label>
-
-              <div className="btn-group w-100">
-                <button
-                  type="button"
-                  className={`btn ${
-                    role === 'teacher' ? 'btn-primary' : 'btn-outline-primary'
-                  }`}
-                  onClick={() => setRole('teacher')}
-                >
-                  Teacher
-                </button>
-
-                <button
-                  type="button"
-                  className={`btn ${
-                    role === 'student' ? 'btn-success' : 'btn-outline-success'
-                  }`}
-                  onClick={() => setRole('student')}
-                >
-                  Student
-                </button>
+            {/* בחירת תפקיד - מוצגת רק במצב FULLCLIENT */}
+            {!serverMode ? (
+              <div className="mb-4">
+                <label className="form-label">Choose role</label>
+                <div className="btn-group w-100">
+                  <button
+                    type="button"
+                    className={`btn ${role === 'teacher' ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => setRole('teacher')}
+                  >
+                    Teacher
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn ${role === 'student' ? 'btn-success' : 'btn-outline-success'}`}
+                    onClick={() => setRole('student')}
+                  >
+                    Student
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="mb-4">
+                <small className="text-muted">
+                  🔒 Your role is determined by your account in the database.
+                </small>
+              </div>
+            )}
 
             {/* כפתור התחברות */}
-            <button type="submit" className="btn btn-primary btn-lg w-100">
-              Login
+            <button
+              type="submit"
+              className="btn btn-primary btn-lg w-100"
+              disabled={loading}
+            >
+              {loading ? 'Signing in...' : 'Login'}
             </button>
           </form>
 
-          {/* Registerמעבר למסך  */}
+          {/* מעבר למסך Register */}
           <div className="text-center mt-3">
             <button
               className="btn btn-link"
