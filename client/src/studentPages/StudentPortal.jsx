@@ -1,8 +1,8 @@
 // קומפוננטת פורטל תלמיד משופרת
 // מאפשרת לתלמיד להתחיל מבחן, לבחור תשובות, לעבור בין שאלות, להגיש מבחן ולקבל ציון
 
-import { useState } from 'react'
-import { getExamById } from '../api/examService'
+import { useState, useEffect } from 'react'
+import { getExamById, getAllExams } from '../api/examService'
 
 function StudentPortal({ username, onSaveResult }) {
   // שומר את מספר המבחן שהתלמיד מקליד
@@ -24,6 +24,28 @@ function StudentPortal({ username, onSaveResult }) {
 
   // שומר את מספר התשובות הנכונות של התלמיד
   const [score, setScore] = useState(0)
+
+  // שומר את כל המבחנים הזמינים מהמאגר
+  const [availableExams, setAvailableExams] = useState([])
+
+  // טעינת רשימת המבחנים הזמינים כדי להציג את המזהים שלהם
+  useEffect(() => {
+    let active = true
+    const fetchExams = async () => {
+      try {
+        const data = await getAllExams()
+        if (active) {
+          setAvailableExams(data)
+        }
+      } catch (err) {
+        console.error('Failed to fetch available exams:', err)
+      }
+    }
+    fetchExams()
+    return () => {
+      active = false
+    }
+  }, [])
 
   // התחלת מבחן לפי מזהה שהמשתמש מכניס
   const handleStartExam = async () => {
@@ -134,7 +156,9 @@ function StudentPortal({ username, onSaveResult }) {
           {/* הצגת הודעה אם לא הוזן מזהה או אם המבחן לא נמצא */}
           {message && <div className="alert alert-warning">{message}</div>}
 
-          <div className="text-muted small">Try exam ID</div>
+          <div className="text-muted small">
+            Try exam ID: {availableExams.length > 0 ? availableExams.map((e) => e.id).join(', ') : 'Loading...'}
+          </div>
         </div>
       </div>
     )

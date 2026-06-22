@@ -44,7 +44,7 @@ function App() {
         <div>
           <strong>Data Source:</strong>{' '}
           <span className={dataMode === 'SERVER' ? 'text-success' : 'text-primary'}>
-            {dataMode === 'SERVER' ? '🟢 Server API (localhost:3001)' : '🔵 Client Mock DB'}
+            {dataMode === 'SERVER' ? '🟢 Server API (localhost:5000)' : '🔵 Client Mock DB'}
           </span>
         </div>
         <div>

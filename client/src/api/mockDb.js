@@ -79,6 +79,30 @@ export const exams = [
       },
     ],
   },
+  {
+    id: 4,
+    title: 'MATH 3',
+    questions: [
+      {
+        id: 1,
+        text: '2+2+4',
+        options: ['6', '8', '7', '1'],
+        answer: '8',
+      },
+    ],
+  },
+  {
+    id: 5,
+    title: 'math 9',
+    questions: [
+      {
+        id: 1,
+        text: '7+7+7',
+        options: ['21', '12', '0', '4'],
+        answer: '21',
+      },
+    ],
+  },
 ]
 
 // מערך ציונים מדומה של תלמידים, כהכנה לשימוש עתידי במערכת

@@ -9,7 +9,7 @@ class ConfigService {
     this.teacherAvailableMinutes = 20
 
     // כתובת השרת המקומי
-    this.apiBaseUrl = 'http://localhost:3001/api'
+    this.apiBaseUrl = 'http://localhost:5000/api'
 
     // מצב ברירת המחדל: FULLCLIENT = עבודה מול mockDb ללא שרת
     this.defaultDataMode = 'FULLCLIENT'
