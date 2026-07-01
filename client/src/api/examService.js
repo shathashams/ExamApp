@@ -1,8 +1,7 @@
 // קובץ זה עובד או מול mockDb מקומי או מול Server לפי ConfigService
-// הקומפוננטות לא יודעות מאיפה מגיעים הנתונים - הכל מנוהל כאן
-
 import { exams } from './mockDb'
 import ConfigService from '../utils/ConfigService'
+import StorageService from '../utils/StorageService'
 
 // פונקציה זו מדמה זמן המתנה של בקשת רשת באמצעות Promise ו-setTimeout
 const delay = (data) => {
@@ -16,10 +15,24 @@ const delay = (data) => {
 // בודק האם לעבוד מול Server או מול Mock Client
 const isServerMode = () => ConfigService.isServerMode()
 
+// יצירת כותרות אימות מול השרת
+const getAuthHeaders = () => {
+  const user = StorageService.get('user')
+  const headers = { 'Content-Type': 'application/json' }
+  if (user && user.id) {
+    headers['x-user-id'] = String(user.id)
+    headers['x-user-role'] = user.role
+    headers['x-user-username'] = user.username
+  }
+  return headers
+}
+
 // מחזירה את כל המבחנים הקיימים
 export const getAllExams = async () => {
   if (isServerMode()) {
-    const response = await fetch(`${ConfigService.getApiBaseUrl()}/exams`)
+    const response = await fetch(`${ConfigService.getApiBaseUrl()}/exams`, {
+      headers: getAuthHeaders(),
+    })
     if (!response.ok) throw new Error('Failed to load exams from server')
     return response.json()
   }
@@ -29,7 +42,9 @@ export const getAllExams = async () => {
 // מחזירה מבחן לפי מזהה שהמשתמש הכניס
 export const getExamById = async (id) => {
   if (isServerMode()) {
-    const response = await fetch(`${ConfigService.getApiBaseUrl()}/exams/${id}`)
+    const response = await fetch(`${ConfigService.getApiBaseUrl()}/exams/${id}`, {
+      headers: getAuthHeaders(),
+    })
     if (!response.ok) throw new Error('Exam not found on server')
     return response.json()
   }
@@ -42,7 +57,7 @@ export const createExam = async (exam) => {
   if (isServerMode()) {
     const response = await fetch(`${ConfigService.getApiBaseUrl()}/exams`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(exam),
     })
     if (!response.ok) throw new Error('Failed to create exam on server')
@@ -64,7 +79,7 @@ export const updateExam = async (updatedExam) => {
       `${ConfigService.getApiBaseUrl()}/exams/${updatedExam.id}`,
       {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(updatedExam),
       }
     )

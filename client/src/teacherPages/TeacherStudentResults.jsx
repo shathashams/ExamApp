@@ -8,11 +8,14 @@ function TeacherStudentResults({ results }) {
   const examNames = [...new Set(results.map((result) => result.examTitle))]
 
   // שמירת המבחן שנבחר להצגה
-  const [selectedExam, setSelectedExam] = useState(examNames[0] || '')
+  const [selectedExam, setSelectedExam] = useState('')
+
+  // המבחן שנבחר בפועל (במידה ולא נבחר כלום, ברירת המחדל היא הראשון ברשימה)
+  const activeExam = selectedExam || examNames[0] || ''
 
   // סינון התוצאות לפי המבחן שנבחר
   const filteredResults = results.filter(
-    (result) => result.examTitle === selectedExam
+    (result) => result.examTitle === activeExam
   )
 
   // מיון הציונים מהגבוה לנמוך כדי ליצור גרף כמו התפלגות ציונים
@@ -87,7 +90,7 @@ function TeacherStudentResults({ results }) {
           <label className="form-label">Choose Exam</label>
           <select
             className="form-select"
-            value={selectedExam}
+            value={activeExam}
             onChange={(e) => setSelectedExam(e.target.value)}
           >
             {examNames.map((examName) => (

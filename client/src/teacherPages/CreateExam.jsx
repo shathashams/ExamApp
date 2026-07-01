@@ -7,6 +7,7 @@ import { createExam } from '../api/examService'
 function CreateExam({ onExamCreated }) {
   // שמירת פרטי המבחן הכלליים
   const [examTitle, setExamTitle] = useState('')
+  const [status, setStatus] = useState('draft')
   const [duration, setDuration] = useState(60)
   const [extraTime, setExtraTime] = useState(15)
   const [allowedMaterials, setAllowedMaterials] = useState('')
@@ -76,6 +77,7 @@ function CreateExam({ onExamCreated }) {
 
     const newExam = {
       title: examTitle,
+      status,
       duration: Number(duration),
       extraTime: Number(extraTime),
       allowedMaterials,
@@ -93,6 +95,7 @@ function CreateExam({ onExamCreated }) {
     setMessage(`Exam "${savedExam.title}" was created successfully.`)
 
     setExamTitle('')
+    setStatus('draft')
     setDuration(60)
     setExtraTime(15)
     setAllowedMaterials('')
@@ -124,7 +127,7 @@ function CreateExam({ onExamCreated }) {
         {message && <div className="alert alert-info">{message}</div>}
 
         <div className="row mb-3">
-          <div className="col-md-6">
+          <div className="col-md-4">
             <label className="form-label">Exam Title</label>
             <input
               className="form-control"
@@ -132,6 +135,18 @@ function CreateExam({ onExamCreated }) {
               value={examTitle}
               onChange={(e) => setExamTitle(e.target.value)}
             />
+          </div>
+
+          <div className="col-md-2">
+            <label className="form-label">Status</label>
+            <select
+              className="form-select"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
           </div>
 
           <div className="col-md-3">

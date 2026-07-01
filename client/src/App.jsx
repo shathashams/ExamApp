@@ -11,18 +11,23 @@ import StudentPortal from './studentPages/StudentPortal'
 import StudentResults from './studentPages/StudentResults'
 import TeacherStudentResults from './teacherPages/TeacherStudentResults'
 import ConfigService from './utils/ConfigService'
+import StorageService from './utils/StorageService'
 import * as authService from './api/authService'
+import * as scoreService from './api/scoreService'
 import './App.css'
 
 function App() {
   // שומר את המשתמש שמחובר כרגע למערכת
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState(() => StorageService.get('user'))
 
   // קובע אם להציג למשתמש מסך התחברות או מסך הרשמה
   const [authMode, setAuthMode] = useState('login')
 
   // שומר איזה דף מוצג כרגע אחרי ההתחברות
-  const [activePage, setActivePage] = useState('teacherDashboard')
+  const [activePage, setActivePage] = useState(() => {
+    const savedUser = StorageService.get('user')
+    return savedUser && savedUser.role === 'student' ? 'studentPortal' : 'teacherDashboard'
+  })
 
   // שומר את מצב מקור הנתונים: FULLCLIENT או SERVER
   const [dataMode, setDataMode] = useState(ConfigService.getDataMode())
@@ -42,6 +47,21 @@ function App() {
 
   // שומר את תוצאות המבחנים שהתלמידים הגישו
   const [studentResults, setStudentResults] = useState([])
+
+  // טעינת ציונים מהשרת/זיכרון מקומי
+  useEffect(() => {
+    const fetchScores = async () => {
+      if (user) {
+        try {
+          const scores = await scoreService.getScores(user.id, user.role, user.username)
+          setStudentResults(scores)
+        } catch (err) {
+          console.error('Failed to fetch scores:', err)
+        }
+      }
+    }
+    fetchScores()
+  }, [user, dataMode])
 
   // שינוי מקור הנתונים של האפליקציה
   const handleDataModeChange = (mode) => {
@@ -95,34 +115,41 @@ function App() {
   const handleLogin = async (username, password, role) => {
     const userData = await authService.login(username, password, role)
     setUser(userData)
-
-    if (userData.role === 'teacher') {
-      setActivePage('teacherDashboard')
-    } else {
-      setActivePage('studentPortal')
-    }
+    StorageService.save('user', userData)
+    setActivePage(userData.role === 'teacher' ? 'teacherDashboard' : 'studentPortal')
   }
 
   // הרשמה - קריאה ל-authService שמנתב ל-Server או ל-Mock לפי המצב
   const handleRegister = async (username, password, fullName, role) => {
     const userData = await authService.register(username, password, fullName, role)
     setUser(userData)
-
-    if (userData.role === 'teacher') {
-      setActivePage('teacherDashboard')
-    } else {
-      setActivePage('studentPortal')
-    }
+    StorageService.save('user', userData)
+    setActivePage(userData.role === 'teacher' ? 'teacherDashboard' : 'studentPortal')
   }
 
   // שמירת תוצאה חדשה אחרי שהתלמיד מגיש מבחן
-  const handleSaveResult = (result) => {
-    setStudentResults([...studentResults, result])
+  const handleSaveResult = async (result) => {
+    if (user) {
+      try {
+        const scoreData = {
+          examId: result.examId,
+          examTitle: result.examTitle,
+          score: result.score,
+          totalQuestions: result.totalQuestions,
+          grade: result.grade
+        }
+        const savedScore = await scoreService.saveScore(scoreData, user.id, user.role, user.username)
+        setStudentResults([...studentResults, savedScore])
+      } catch (err) {
+        console.error('Failed to save score:', err)
+      }
+    }
   }
 
   // יציאה מהמערכת וחזרה למסך ההתחברות
   const handleLogout = () => {
     setUser(null)
+    StorageService.remove('user')
     setAuthMode('login')
     setActivePage('teacherDashboard')
   }

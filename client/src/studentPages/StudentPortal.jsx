@@ -124,6 +124,7 @@ function StudentPortal({ username, onSaveResult }) {
     onSaveResult({
       id: Date.now(),
       studentName: username,
+      examId: exam.id,
       examTitle: exam.title,
       score: correctAnswers,
       totalQuestions: exam.questions.length,

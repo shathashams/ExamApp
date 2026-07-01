@@ -20,6 +20,7 @@ function ExamManagement({ exam, onBack }) {
   // שמירת פרטי המבחן הכלליים שמוצגים למורה
   const [examInfo, setExamInfo] = useState({
     title: exam?.title || '',
+    status: exam?.status || 'draft',
     duration: exam?.duration || 60,
     extraTime: exam?.extraTime || 15,
     allowedMaterials: exam?.allowedMaterials || 'No materials',
@@ -128,6 +129,7 @@ function ExamManagement({ exam, onBack }) {
     const updatedExam = {
       ...localExam,
       title: examInfo.title,
+      status: examInfo.status,
       duration: Number(examInfo.duration),
       extraTime: Number(examInfo.extraTime),
       allowedMaterials: examInfo.allowedMaterials,
@@ -149,7 +151,12 @@ function ExamManagement({ exam, onBack }) {
         {/* כותרת הדף וכפתורי הניהול המרכזיים */}
         <div className="d-flex justify-content-between align-items-start mb-4">
           <div>
-            <h2 className="fw-bold mb-1">{localExam.title}</h2>
+            <div className="d-flex align-items-center gap-2">
+              <h2 className="fw-bold mb-1">{localExam.title}</h2>
+              <span className={`badge ${localExam.status === 'published' ? 'bg-success' : 'bg-warning text-dark'}`}>
+                {localExam.status === 'published' ? 'Published' : 'Draft'}
+              </span>
+            </div>
             <p className="text-muted mb-0">
               Manage exam details, questions, answers, and exam settings.
             </p>
@@ -178,15 +185,34 @@ function ExamManagement({ exam, onBack }) {
             <div className="card-body">
               <h4>Edit Exam Info</h4>
 
-              <input
-                className="form-control mb-2"
-                placeholder="Exam title"
-                value={examInfo.title}
-                onChange={(e) =>
-                  setExamInfo({ ...examInfo, title: e.target.value })
-                }
-              />
+              <div className="row mb-2">
+                <div className="col-md-8">
+                  <label className="form-label small mb-1 text-muted">Exam Title</label>
+                  <input
+                    className="form-control"
+                    placeholder="Exam title"
+                    value={examInfo.title}
+                    onChange={(e) =>
+                      setExamInfo({ ...examInfo, title: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label small mb-1 text-muted">Status</label>
+                  <select
+                    className="form-select"
+                    value={examInfo.status}
+                    onChange={(e) =>
+                      setExamInfo({ ...examInfo, status: e.target.value })
+                    }
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                  </select>
+                </div>
+              </div>
 
+              <label className="form-label small mb-1 text-muted">Duration in minutes</label>
               <input
                 type="number"
                 className="form-control mb-2"

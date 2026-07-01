@@ -47,30 +47,40 @@ useEffect(() => {
         <p className="text-muted">List of available exams:</p>
 
         <div className="row">
-          {exams.map((exam) => (
-            <div className="col-md-4 mb-3" key={exam.id}>
-              <div className="card h-100">
-                <div className="card-body">
-                  <h5 className="card-title">{exam.title}</h5>
+          {exams.map((exam) => {
+            const status = exam.status || (exam.id <= 2 ? 'published' : 'draft');
+            return (
+              <div className="col-md-4 mb-3" key={exam.id}>
+                <div className="card h-100">
+                  <div className="card-body d-flex flex-column justify-content-between">
+                    <div>
+                      <div className="d-flex justify-content-between align-items-start mb-2 gap-2">
+                        <h5 className="card-title mb-0">{exam.title}</h5>
+                        <span className={`badge ${status === 'published' ? 'bg-success' : 'bg-warning text-dark'}`}>
+                          {status === 'published' ? 'Published' : 'Draft'}
+                        </span>
+                      </div>
 
-                  <p className="card-text">
-                    Questions: {exam.questions.length}
-                  </p>
+                      <p className="card-text mb-1">
+                        Questions: {exam.questions.length}
+                      </p>
 
-                  <p className="text-muted mb-2">
-                    Duration: {exam.duration || 60} min
-                  </p>
+                      <p className="text-muted mb-3">
+                        Duration: {exam.duration || 60} min
+                      </p>
+                    </div>
 
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => setSelectedExam(exam)}
-                  >
-                    Manage Exam
-                  </button>
+                    <button
+                      className="btn btn-primary w-100"
+                      onClick={() => setSelectedExam(exam)}
+                    >
+                      Manage Exam
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {exams.length === 0 && (

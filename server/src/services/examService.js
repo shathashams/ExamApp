@@ -1,8 +1,27 @@
 import pool from '../db/connect.js'
 
 class ExamService {
-    // קבלת כל המבחנים
-    async getAllExams() {
+    // קבלת כל המבחנים - עם סינון לפי מורה או סינון מבחנים מפורסמים לתלמידים
+    async getAllExams(teacherId = null) {
+        if (teacherId !== null) {
+            const result = await pool.query(`
+                SELECT
+                    id,
+                    title,
+                    status,
+                    duration,
+                    "extraTime",
+                    "allowedMaterials",
+                    "teacherAvailable",
+                    questions,
+                    "teacherId"
+                FROM exams
+                WHERE "teacherId" = $1
+                ORDER BY id
+            `, [teacherId])
+            return result.rows
+        }
+
         const result = await pool.query(`
             SELECT
                 id,
@@ -12,15 +31,35 @@ class ExamService {
                 "extraTime",
                 "allowedMaterials",
                 "teacherAvailable",
-                questions
+                questions,
+                "teacherId"
             FROM exams
+            WHERE status = 'published'
             ORDER BY id
         `)
         return result.rows
     }
 
-    // קבלת מבחן לפי מזהה
-    async getExamById(id) {
+    // קבלת מבחן לפי מזהה - עם סינון בעלות למורים
+    async getExamById(id, teacherId = null) {
+        if (teacherId !== null) {
+            const result = await pool.query(`
+                SELECT
+                    id,
+                    title,
+                    status,
+                    duration,
+                    "extraTime",
+                    "allowedMaterials",
+                    "teacherAvailable",
+                    questions,
+                    "teacherId"
+                FROM exams
+                WHERE id = $1 AND "teacherId" = $2
+            `, [id, teacherId])
+            return result.rows[0]
+        }
+
         const result = await pool.query(`
             SELECT
                 id,
@@ -30,14 +69,15 @@ class ExamService {
                 "extraTime",
                 "allowedMaterials",
                 "teacherAvailable",
-                questions
+                questions,
+                "teacherId"
             FROM exams
-            WHERE id = $1
+            WHERE id = $1 AND status = 'published'
         `, [id])
         return result.rows[0]
     }
 
-    // יצירת מבחן חדש
+    // יצירת מבחן חדש עם מזהה המורה שיצר אותו
     async createExam({
         title,
         status = 'draft',
@@ -46,7 +86,7 @@ class ExamService {
         allowedMaterials = '',
         teacherAvailable = '',
         questions
-    }) {
+    }, teacherId) {
         const result = await pool.query(`
             INSERT INTO exams (
                 title,
@@ -55,9 +95,10 @@ class ExamService {
                 "extraTime",
                 "allowedMaterials",
                 "teacherAvailable",
-                questions
+                questions,
+                "teacherId"
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
+            VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8)
             RETURNING
                 id,
                 title,
@@ -66,7 +107,8 @@ class ExamService {
                 "extraTime",
                 "allowedMaterials",
                 "teacherAvailable",
-                questions
+                questions,
+                "teacherId"
         `, [
             title,
             status,
@@ -74,14 +116,15 @@ class ExamService {
             Number(extraTime),
             allowedMaterials,
             teacherAvailable,
-            JSON.stringify(questions)
+            JSON.stringify(questions),
+            teacherId
         ])
         return result.rows[0]
     }
 
-    // עדכון מבחן קיים
-    async updateExam(id, examData) {
-        const existingExam = await this.getExamById(id)
+    // עדכון מבחן קיים - מוודא בעלות של המורה
+    async updateExam(id, examData, teacherId) {
+        const existingExam = await this.getExamById(id, teacherId)
         if (!existingExam) {
             return null
         }
@@ -106,7 +149,7 @@ class ExamService {
                 "allowedMaterials" = $5,
                 "teacherAvailable" = $6,
                 questions = $7::jsonb
-            WHERE id = $8
+            WHERE id = $8 AND "teacherId" = $9
             RETURNING
                 id,
                 title,
@@ -115,7 +158,8 @@ class ExamService {
                 "extraTime",
                 "allowedMaterials",
                 "teacherAvailable",
-                questions
+                questions,
+                "teacherId"
         `, [
             updatedExam.title,
             updatedExam.status,
@@ -124,19 +168,20 @@ class ExamService {
             updatedExam.allowedMaterials,
             updatedExam.teacherAvailable,
             JSON.stringify(updatedExam.questions),
-            id
+            id,
+            teacherId
         ])
 
         return result.rows[0]
     }
 
-    // מחיקת מבחן
-    async deleteExam(id) {
+    // מחיקת מבחן - מוודא בעלות של המורה
+    async deleteExam(id, teacherId) {
         const result = await pool.query(`
             DELETE FROM exams
-            WHERE id = $1
+            WHERE id = $1 AND "teacherId" = $2
             RETURNING id
-        `, [id])
+        `, [id, teacherId])
         return result.rows[0]
     }
 }
