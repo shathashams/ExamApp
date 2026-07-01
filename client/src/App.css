@@ -1,127 +1,400 @@
-/* עיצוב כללי של כל הדף */
+/* E-Test System Minimalistic & Beautiful Design Styles */
+
+/* ─────────────────────────────────────────────────────────────
+   Theme Variables Definition
+   ───────────────────────────────────────────────────────────── */
+
+/* Light Theme Variables */
+:root, [data-theme='light'] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  
+  --border-color: #e2e8f0;
+  --border-focus: #6366f1;
+  
+  --primary-accent: #6366f1;
+  --primary-hover: #4f46e5;
+  --primary-glow: rgba(99, 102, 241, 0.15);
+  
+  --success-accent: #10b981;
+  --success-hover: #059669;
+  --success-glow: rgba(16, 185, 129, 0.15);
+  
+  --card-bg: #ffffff;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.08);
+  
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --input-text: #1e293b;
+  
+  --option-hover: #f5f3ff;
+  --option-selected: #eff6ff;
+}
+
+/* Dark Theme Variables */
+body.dark-mode {
+  /* Overrides for index.css variables */
+  --bg: #0f172a;
+  --text: #cbd5e1;
+  --text-h: #f8fafc;
+  --border: #1e293b;
+  --code-bg: #1e293b;
+
+  --bg-primary: #0f172a;
+  --bg-secondary: #0b0f19;
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  
+  --border-color: #1e293b;
+  --border-focus: #818cf8;
+  
+  --primary-accent: #818cf8;
+  --primary-hover: #6366f1;
+  --primary-glow: rgba(129, 140, 248, 0.25);
+  
+  --success-accent: #34d399;
+  --success-hover: #10b981;
+  --success-glow: rgba(52, 211, 153, 0.25);
+  
+  --card-bg: #1e293b;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+  
+  --input-bg: #1e293b;
+  --input-border: #334155;
+  --input-text: #f8fafc;
+  
+  --option-hover: #2e2a47;
+  --option-selected: #1e294a;
+}
+
+/* Global Transitions */
+*, *::before, *::after {
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Global & Layout Styles
+   ───────────────────────────────────────────────────────────── */
+
 body {
-  background-color: #f5f7fb;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
-/* עיצוב בסיסי לכל הכרטיסים במערכת */
+h1, h2, h3, h4, h5, h6, .card-title {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Components
+   ───────────────────────────────────────────────────────────── */
+
+/* Cards style */
 .card {
-  border-radius: 12px;
+  background-color: var(--card-bg);
+  border: 1.5px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  color: var(--text-secondary);
 }
 
-/* הדגשת כותרות הכרטיסים */
-.card-title {
-  font-weight: bold;
+.card:hover {
+  box-shadow: var(--card-shadow-hover);
 }
 
-/* עיצוב מסך ההתחברות וההרשמה */
-.login-page {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #eef4ff, #ffffff);
-  padding: 20px;
-}
-
-/* כרטיס ההתחברות המרכזי */
-.login-card {
-  width: 100%;
-  max-width: 520px;
-  border-radius: 18px;
-  border: 1px solid #e1e5ee;
-}
-
-/* אייקון שמופיע בראש מסך ההתחברות */
-.login-icon {
-  font-size: 42px;
-}
-
-/* תפריט עליון אחרי התחברות למערכת */
+/* Header style */
 .app-header {
-  background-color: #ffffff;
-  border: 1px solid #e1e5ee;
-  border-radius: 14px;
-  padding: 18px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  background-color: var(--card-bg);
+  border: 1.5px solid var(--border-color);
+  border-radius: 16px;
+  padding: 16px 24px;
 }
 
-/* עיצוב כללי למסך המבחן של התלמיד */
-.student-exam-page {
-  background-color: #f7f9fc;
-  padding: 20px;
-  border-radius: 18px;
+/* Inputs, Labels & Form fields */
+.form-label {
+  color: var(--text-primary);
+  font-weight: 550;
+  transition: color 0.2s ease;
 }
 
-/* כרטיס שמציג את השאלה הנוכחית */
-.question-card {
-  border-radius: 18px;
+.form-control, .form-select {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border: 1.5px solid var(--input-border);
+  border-radius: 12px;
+  padding: 11px 16px;
+  transition: all 0.2s ease;
 }
 
-/* מספר השאלה שמופיע בעיגול ליד הטקסט */
-.question-number {
-  background-color: #111827;
-  color: white;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
+.form-control:focus, .form-select:focus {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.form-control::placeholder {
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+/* Buttons style */
+.btn {
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  flex-shrink: 0;
+  gap: 8px;
+  transition: all 0.2s ease;
 }
 
-/* רשימת אפשרויות התשובה */
+.btn-primary {
+  background-color: var(--primary-accent);
+  border: none;
+  color: #ffffff;
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+  background-color: var(--primary-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+.btn-success {
+  background-color: var(--success-accent);
+  border: none;
+  color: #ffffff;
+}
+
+.btn-success:hover, .btn-success:focus, .btn-success:active {
+  background-color: var(--success-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--success-glow);
+}
+
+.btn-outline-primary {
+  border: 1.5px solid var(--primary-accent);
+  color: var(--primary-accent);
+  background: transparent;
+}
+
+.btn-outline-primary:hover, .btn-outline-primary:active {
+  background-color: var(--primary-accent) !important;
+  border-color: var(--primary-accent) !important;
+  color: #ffffff !important;
+}
+
+.btn-outline-success {
+  border: 1.5px solid var(--success-accent);
+  color: var(--success-accent);
+  background: transparent;
+}
+
+.btn-outline-success:hover, .btn-outline-success:active {
+  background-color: var(--success-accent) !important;
+  border-color: var(--success-accent) !important;
+  color: #ffffff !important;
+}
+
+.btn-outline-secondary {
+  border: 1.5px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.btn-outline-secondary:hover {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Auth Screen
+   ───────────────────────────────────────────────────────────── */
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 480px;
+  border-radius: 20px;
+  background-color: var(--card-bg);
+}
+
+.login-icon {
+  font-size: 40px;
+  animation: bounceFloat 3s ease-in-out infinite;
+}
+
+@keyframes bounceFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Student Exam portal
+   ───────────────────────────────────────────────────────────── */
+
+.student-exam-page {
+  background-color: var(--card-bg);
+  border: 1.5px solid var(--border-color);
+  padding: 24px;
+  border-radius: 20px;
+}
+
+.question-card {
+  border: 1.5px solid var(--border-color);
+  border-radius: 16px;
+  background-color: var(--bg-secondary);
+}
+
+.question-number {
+  background: var(--primary-accent);
+  color: #ffffff;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .answer-options {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-/* עיצוב כפתור של תשובה */
 .answer-option {
-  width: 100%;
-  border: 1px solid #cbd5e1;
-  background-color: white;
-  color: #111827;
-  border-radius: 10px;
-  padding: 12px 16px;
-  text-align: left;
+  background-color: var(--card-bg);
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 12px;
-  transition: 0.2s;
-  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
-/* שינוי צבע כאשר העכבר נמצא מעל תשובה */
 .answer-option:hover {
-  border-color: #0d6efd;
-  background-color: #f8fbff;
+  background-color: var(--option-hover);
+  border-color: var(--primary-accent);
+  color: var(--primary-accent);
+  transform: translateX(4px);
 }
 
-/* עיצוב תשובה שנבחרה על ידי התלמיד */
 .answer-option-selected {
-  border: 2px solid #0d6efd;
-  background-color: #eef5ff;
-  color: #0d6efd;
-  font-weight: 600;
+  background-color: var(--option-selected);
+  border-color: var(--primary-accent);
+  color: var(--primary-accent);
+  font-weight: 650;
+  box-shadow: 0 4px 12px var(--primary-glow);
 }
 
-/* עיגול קטן ליד כל תשובה */
 .answer-circle {
-  width: 14px;
-  height: 14px;
-  border: 1px solid #94a3b8;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--text-muted);
   border-radius: 50%;
-  display: inline-block;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
 }
 
-/* מילוי העיגול כאשר התשובה נבחרה */
+.answer-option:hover .answer-circle {
+  border-color: var(--primary-accent);
+}
+
 .answer-option-selected .answer-circle {
-  background-color: #0d6efd;
-  border-color: #0d6efd;
+  background-color: var(--primary-accent);
+  border-color: var(--primary-accent);
+  box-shadow: inset 0 0 0 3px var(--option-selected);
 }
 
-/* פס ההתקדמות בין שאלות המבחן */
 .exam-progress {
-  width: 180px;
-  height: 8px;
+  height: 10px;
+  border-radius: 8px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Table Styles & Lists
+   ───────────────────────────────────────────────────────────── */
+
+.table {
+  color: var(--text-secondary);
+}
+
+.list-group-item {
+  background-color: var(--card-bg);
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+body.dark-mode .list-group-item {
+  background-color: var(--card-bg) !important;
+  color: var(--text-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.table th {
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.table td {
+  border-bottom: 1.5px solid var(--border-color);
+  vertical-align: middle;
+}
+
+/* Dark mode table specific overrides to prevent Bootstrap table-light/dark clashes */
+body.dark-mode .table {
+  color: var(--text-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+body.dark-mode .table thead.table-light th,
+body.dark-mode .table thead.table-light td,
+body.dark-mode .table thead,
+body.dark-mode .table th {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+body.dark-mode .table-hover tbody tr:hover {
+  background-color: var(--option-hover) !important;
+  color: var(--primary-accent) !important;
+}
+
+body.dark-mode .table td {
+  background-color: transparent !important;
+  color: var(--text-secondary) !important;
+  border-color: var(--border-color) !important;
 }

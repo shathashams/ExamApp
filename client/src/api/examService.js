@@ -2,7 +2,7 @@
 // הקומפוננטות לא יודעות מאיפה מגיעים הנתונים - הכל מנוהל כאן
 
 import { exams } from './mockDb'
-import ConfigService from '../services/ConfigService'
+import ConfigService from '../utils/ConfigService'
 
 // פונקציה זו מדמה זמן המתנה של בקשת רשת באמצעות Promise ו-setTimeout
 const delay = (data) => {
