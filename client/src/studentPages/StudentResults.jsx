@@ -49,7 +49,7 @@ function StudentResults({ results }) {
               <div key={result.id} className="list-group-item p-3 mb-3 rounded border shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div className="d-flex align-items-center flex-wrap gap-3">
                   <div className="d-flex align-items-center gap-2">
-                    <span className="fw-bold fs-5 text-dark">{result.examTitle}</span>
+                    <span className="fw-bold fs-5">{result.examTitle}</span>
                     <span className="badge bg-primary fs-6 px-3 py-1.5 rounded-pill">{result.grade}%</span>
                     
                     {isPassed ? (
