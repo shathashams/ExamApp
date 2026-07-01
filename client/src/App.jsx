@@ -29,8 +29,8 @@ function App() {
     return savedUser && savedUser.role === 'student' ? 'studentPortal' : 'teacherDashboard'
   })
 
-  // שומר את מצב מקור הנתונים: FULLCLIENT או SERVER
-  const [dataMode, setDataMode] = useState(ConfigService.getDataMode())
+  // מצב מקור הנתונים קבוע כעת ל-SERVER
+  const dataMode = 'SERVER'
 
   // שומר את מצב העיצוב (ערכת נושא)
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light')
@@ -63,51 +63,18 @@ function App() {
     fetchScores()
   }, [user, dataMode])
 
-  // שינוי מקור הנתונים של האפליקציה
-  const handleDataModeChange = (mode) => {
-    ConfigService.setDataMode(mode)
-    setDataMode(mode)
-    setActivePage('teacherDashboard')
-  }
-
-  // בורר מקור הנתונים - מוצג בכל מסך כולל Login
-  const renderDataModeSelector = () => (
-    <div className="card shadow-sm mb-3">
-      <div className="card-body d-flex justify-content-between align-items-center py-2 flex-wrap gap-2">
-        <div className="d-flex align-items-center gap-3">
-          <div>
-            <strong>Data Source:</strong>{' '}
-            <span className={dataMode === 'SERVER' ? 'text-success' : 'text-primary'}>
-              {dataMode === 'SERVER' ? '🟢 Server API (localhost:5000)' : '🔵 Client Mock DB'}
-            </span>
-          </div>
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center p-0"
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
-            style={{ borderRadius: '50%', width: '32px', height: '32px', border: '1.5px solid #cbd5e1' }}
-          >
-            {theme === 'light' ? '🌙' : '☀️'}
-          </button>
-        </div>
-        <div>
-          <button
-            id="btn-mode-client"
-            className={`btn btn-sm me-2 ${dataMode === 'FULLCLIENT' ? 'btn-primary' : 'btn-outline-primary'}`}
-            onClick={() => handleDataModeChange('FULLCLIENT')}
-          >
-            Client Only
-          </button>
-          <button
-            id="btn-mode-server"
-            className={`btn btn-sm ${dataMode === 'SERVER' ? 'btn-success' : 'btn-outline-success'}`}
-            onClick={() => handleDataModeChange('SERVER')}
-          >
-            Server
-          </button>
-        </div>
-      </div>
+  // בורר ערכת נושא בלבד כשאין משתמש מחובר
+  const renderThemeToggle = () => (
+    <div className="d-flex justify-content-end mb-3">
+      <button
+        type="button"
+        className="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center p-0"
+        onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+        title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+        style={{ borderRadius: '50%', width: '32px', height: '32px', border: '1.5px solid #cbd5e1' }}
+      >
+        {theme === 'light' ? '🌙' : '☀️'}
+      </button>
     </div>
   )
 
@@ -159,7 +126,7 @@ function App() {
   if (!user) {
     return (
       <div className="container mt-4">
-        {renderDataModeSelector()}
+        {renderThemeToggle()}
 
         {authMode === 'register' ? (
           <Register

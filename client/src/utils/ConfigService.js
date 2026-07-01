@@ -11,8 +11,8 @@ class ConfigService {
     // כתובת השרת המקומי
     this.apiBaseUrl = 'http://localhost:5000/api'
 
-    // מצב ברירת המחדל: FULLCLIENT = עבודה מול mockDb ללא שרת
-    this.defaultDataMode = 'FULLCLIENT'
+    // מצב ברירת המחדל: SERVER = עבודה מול שרת
+    this.defaultDataMode = 'SERVER'
   }
 
   getAppName() {
@@ -37,22 +37,22 @@ class ConfigService {
 
   // מחזיר את מצב העבודה הנוכחי מ-localStorage, או ברירת המחדל
   getDataMode() {
-    return localStorage.getItem('dataMode') || this.defaultDataMode
+    return 'SERVER'
   }
 
   // שומר את מצב העבודה ב-localStorage
   setDataMode(mode) {
-    localStorage.setItem('dataMode', mode)
+    localStorage.setItem('dataMode', 'SERVER')
   }
 
   // האם עובדים מול שרת אמיתי?
   isServerMode() {
-    return this.getDataMode() === 'SERVER'
+    return true
   }
 
   // האם עובדים מול Mock Client בלבד?
   isFullClientMode() {
-    return this.getDataMode() === 'FULLCLIENT'
+    return false
   }
 }
 
