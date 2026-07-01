@@ -18,6 +18,12 @@ function Login({ onLogin, onSwitchToRegister }) {
   // במצב שרת התפקיד מגיע מה-DB ולא מבחירת המשתמש
   const serverMode = ConfigService.isServerMode()
 
+  const handleAutofillDemo = (demoUsername, demoPassword, demoRole) => {
+    setUsername(demoUsername)
+    setPassword(demoPassword)
+    setRole(demoRole)
+  }
+
   // פונקציה שמופעלת כאשר המשתמש לוחץ על Login
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -139,7 +145,7 @@ function Login({ onLogin, onSwitchToRegister }) {
           </form>
 
           {/* מעבר למסך Register */}
-          <div className="text-center mt-3">
+          <div className="text-center mt-3 mb-2">
             <button
               className="btn btn-link"
               type="button"
@@ -147,6 +153,33 @@ function Login({ onLogin, onSwitchToRegister }) {
             >
               Don't have an account? Register
             </button>
+          </div>
+
+          <hr className="my-3" />
+
+          {/* כפתורי התחברות מהירה לחשבונות דמו */}
+          <div className="demo-accounts-section text-center">
+            <h6 className="text-muted mb-2 small fw-bold text-uppercase" style={{ letterSpacing: '0.5px', fontSize: '0.75rem' }}>
+              Quick Demo Login
+            </h6>
+            <div className="d-flex justify-content-center gap-2">
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-primary"
+                onClick={() => handleAutofillDemo('teacher1', '123444', 'teacher')}
+                style={{ padding: '4px 10px', fontSize: '0.8rem' }}
+              >
+                Teacher Demo 👨‍🏫
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-success"
+                onClick={() => handleAutofillDemo('student1', '1789', 'student')}
+                style={{ padding: '4px 10px', fontSize: '0.8rem' }}
+              >
+                Student Demo 🎓
+              </button>
+            </div>
           </div>
         </div>
       </div>
