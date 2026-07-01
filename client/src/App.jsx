@@ -1,16 +1,16 @@
 // הקומפוננטה הראשית של האפליקציה
 // אחראית על ניהול התחברות, הרשמה, ניווט בין דפים והצגת מסך לפי תפקיד המשתמש
 
-import { useState } from 'react'
-import Login from './auth/Login'
-import Register from './auth/Register'
+import { useState, useEffect } from 'react'
+import Login from './pages/Login'
+import Register from './pages/Register'
 import NavigationMenu from './components/NavigationMenu'
 import TeacherDashboard from './teacherPages/TeacherDashboard'
 import CreateExam from './teacherPages/CreateExam'
 import StudentPortal from './studentPages/StudentPortal'
 import StudentResults from './studentPages/StudentResults'
 import TeacherStudentResults from './teacherPages/TeacherStudentResults'
-import ConfigService from './services/ConfigService'
+import ConfigService from './utils/ConfigService'
 import * as authService from './api/authService'
 import './App.css'
 
@@ -27,6 +27,19 @@ function App() {
   // שומר את מצב מקור הנתונים: FULLCLIENT או SERVER
   const [dataMode, setDataMode] = useState(ConfigService.getDataMode())
 
+  // שומר את מצב העיצוב (ערכת נושא)
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light')
+
+  // החלת ערכת הנושא בעת שינוי
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.body.classList.add('dark-mode')
+    } else {
+      document.body.classList.remove('dark-mode')
+    }
+    localStorage.setItem('theme', theme)
+  }, [theme])
+
   // שומר את תוצאות המבחנים שהתלמידים הגישו
   const [studentResults, setStudentResults] = useState([])
 
@@ -40,12 +53,23 @@ function App() {
   // בורר מקור הנתונים - מוצג בכל מסך כולל Login
   const renderDataModeSelector = () => (
     <div className="card shadow-sm mb-3">
-      <div className="card-body d-flex justify-content-between align-items-center py-2">
-        <div>
-          <strong>Data Source:</strong>{' '}
-          <span className={dataMode === 'SERVER' ? 'text-success' : 'text-primary'}>
-            {dataMode === 'SERVER' ? '🟢 Server API (localhost:5000)' : '🔵 Client Mock DB'}
-          </span>
+      <div className="card-body d-flex justify-content-between align-items-center py-2 flex-wrap gap-2">
+        <div className="d-flex align-items-center gap-3">
+          <div>
+            <strong>Data Source:</strong>{' '}
+            <span className={dataMode === 'SERVER' ? 'text-success' : 'text-primary'}>
+              {dataMode === 'SERVER' ? '🟢 Server API (localhost:5000)' : '🔵 Client Mock DB'}
+            </span>
+          </div>
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center p-0"
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+            style={{ borderRadius: '50%', width: '32px', height: '32px', border: '1.5px solid #cbd5e1' }}
+          >
+            {theme === 'light' ? '🌙' : '☀️'}
+          </button>
         </div>
         <div>
           <button
@@ -133,6 +157,8 @@ function App() {
         activePage={activePage}
         onNavigate={setActivePage}
         onLogout={handleLogout}
+        theme={theme}
+        onToggleTheme={() => setTheme(theme === 'light' ? 'dark' : 'light')}
       />
 
       {/* הצגת דף הבית של המורה */}

@@ -1,7 +1,7 @@
 // שירות אימות משתמשים
 // תומך במצב FULLCLIENT (ללא שרת) ו-SERVER (מול db.json דרך API)
 
-import ConfigService from '../services/ConfigService'
+import ConfigService from '../utils/ConfigService'
 
 // בדיקה האם עובדים מול שרת
 const isServerMode = () => ConfigService.isServerMode()
@@ -67,6 +67,7 @@ export const register = async (username, password, fullName, role) => {
   }
 
   mockUsers.push(newUser)
-  const { password: _, ...safeUser } = newUser
+  const safeUser = { ...newUser }
+  delete safeUser.password
   return safeUser
 }
