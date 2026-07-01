@@ -22,7 +22,10 @@ export const login = async (username, password, role) => {
       throw new Error(data.error || 'Invalid username or password')
     }
 
-    // התפקיד מגיע מה-DB, לא מהבחירה של המשתמש
+    if (data.role !== role) {
+      throw new Error(`Invalid role selected. You are registered as a ${data.role}.`)
+    }
+
     return data
   }
 

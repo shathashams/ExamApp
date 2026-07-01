@@ -86,27 +86,6 @@ function Register({ onRegister, onSwitchToLogin }) {
               />
             </div>
 
-            {/* בחירת תפקיד במערכת */}
-            <div className="mb-4">
-              <label className="form-label">Choose role</label>
-              <div className="btn-group w-100">
-                <button
-                  type="button"
-                  className={`btn ${role === 'teacher' ? 'btn-primary' : 'btn-outline-primary'}`}
-                  onClick={() => setRole('teacher')}
-                >
-                  Teacher
-                </button>
-                <button
-                  type="button"
-                  className={`btn ${role === 'student' ? 'btn-success' : 'btn-outline-success'}`}
-                  onClick={() => setRole('student')}
-                >
-                  Student
-                </button>
-              </div>
-            </div>
-
             <button
               type="submit"
               className="btn btn-success btn-lg w-100"

@@ -53,6 +53,12 @@ class UserController {
                 throw err
             }
 
+            if (role !== 'student') {
+                const err = new Error('Only student accounts can be registered.')
+                err.status = 403
+                throw err
+            }
+
             const existingUser = await userService.getUserByUsername(username)
 
             if (existingUser) {

@@ -8,7 +8,7 @@ function Login({ onLogin, onSwitchToRegister }) {
   // שמירת הערכים שהמשתמש מכניס בטופס
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState('teacher')
+  const [role, setRole] = useState('student')
   const [showPassword, setShowPassword] = useState(false)
 
   // שמירת הודעת שגיאה ומצב טעינה
@@ -107,34 +107,26 @@ function Login({ onLogin, onSwitchToRegister }) {
               </div>
             </div>
 
-            {/* בחירת תפקיד - מוצגת רק במצב FULLCLIENT */}
-            {!serverMode ? (
-              <div className="mb-4">
-                <label className="form-label">Choose role</label>
-                <div className="btn-group w-100">
-                  <button
-                    type="button"
-                    className={`btn ${role === 'teacher' ? 'btn-primary' : 'btn-outline-primary'}`}
-                    onClick={() => setRole('teacher')}
-                  >
-                    Teacher
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn ${role === 'student' ? 'btn-success' : 'btn-outline-success'}`}
-                    onClick={() => setRole('student')}
-                  >
-                    Student
-                  </button>
-                </div>
+            {/* בחירת תפקיד במערכת */}
+            <div className="mb-4">
+              <label className="form-label">Choose role</label>
+              <div className="btn-group w-100">
+                <button
+                  type="button"
+                  className={`btn ${role === 'teacher' ? 'btn-primary' : 'btn-outline-primary'}`}
+                  onClick={() => setRole('teacher')}
+                >
+                  Teacher
+                </button>
+                <button
+                  type="button"
+                  className={`btn ${role === 'student' ? 'btn-success' : 'btn-outline-success'}`}
+                  onClick={() => setRole('student')}
+                >
+                  Student
+                </button>
               </div>
-            ) : (
-              <div className="mb-4">
-                <small className="text-muted">
-                  🔒 Your role is determined by your account in the database.
-                </small>
-              </div>
-            )}
+            </div>
 
             {/* כפתור התחברות */}
             <button
