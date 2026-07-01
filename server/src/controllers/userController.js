@@ -11,10 +11,10 @@ class UserController {
         }
     }
 
-    // התחברות לפי username ו-password
+    // התחברות לפי username, password ו-role
     async login(req, res, next) {
         try {
-            const { username, password } = req.body
+            const { username, password, role } = req.body
 
             if (!username || !password) {
                 const err = new Error('Username and password are required')
@@ -27,6 +27,12 @@ class UserController {
             if (!user) {
                 const err = new Error('Invalid username or password')
                 err.status = 401
+                throw err
+            }
+
+            if (role && user.role !== role) {
+                const err = new Error(`Unauthorized role access. You are registered as a ${user.role}.`)
+                err.status = 403
                 throw err
             }
 

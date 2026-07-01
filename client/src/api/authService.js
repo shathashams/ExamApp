@@ -13,17 +13,13 @@ export const login = async (username, password, role) => {
     const response = await fetch(`${ConfigService.getApiBaseUrl()}/users/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, role }),
     })
 
     const data = await response.json()
 
     if (!response.ok) {
       throw new Error(data.error || 'Invalid username or password')
-    }
-
-    if (data.role !== role) {
-      throw new Error(`Invalid role selected. You are registered as a ${data.role}.`)
     }
 
     return data
