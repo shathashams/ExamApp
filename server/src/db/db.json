@@ -63,6 +63,7 @@
       "extraTime": 15,
       "allowedMaterials": "Calculator",
       "teacherAvailable": "First 20 minutes of the exam",
+      "teacherId": 1,
       "questions": [
         {
           "id": "q1",
@@ -107,6 +108,7 @@
       "extraTime": 10,
       "allowedMaterials": "Dictionary",
       "teacherAvailable": "First 15 minutes of the exam",
+      "teacherId": 2,
       "questions": [
         {
           "id": "q1",
@@ -162,6 +164,7 @@
       "extraTime": 20,
       "allowedMaterials": "Course notes",
       "teacherAvailable": "First 30 minutes of the exam",
+      "teacherId": 1,
       "questions": [
         {
           "id": "q1",
@@ -206,6 +209,7 @@
       "extraTime": 15,
       "allowedMaterials": "No materials",
       "teacherAvailable": "First 20 minutes of the exam",
+      "teacherId": 1,
       "questions": [
         {
           "id": 1,
@@ -228,6 +232,7 @@
       "extraTime": 15,
       "allowedMaterials": "",
       "teacherAvailable": "First 20 minutes of the exam",
+      "teacherId": 2,
       "questions": [
         {
           "id": 1,

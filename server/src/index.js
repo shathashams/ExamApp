@@ -24,9 +24,20 @@ app.get('/', (req, res) => {
     res.send('E-Test Server is running with PostgreSQL')
 })
 
-// בדיקת חיבור ומספר הרשומות ב-PostgreSQL
+// בדיקת חיבור ומספר הרשומות ב-PostgreSQL או JSON
 app.get('/api/status', async (req, res, next) => {
     try {
+        if (process.env.DB_MODE === 'json') {
+            const { readDb } = await import('./db/dbJsonHelper.js')
+            const db = await readDb()
+            return res.json({
+                message: 'Server is running with local JSON database',
+                examsCount: (db.exams || []).length,
+                usersCount: (db.users || []).length,
+                scoresCount: (db.studentScores || []).length,
+            })
+        }
+
         const [examsResult, usersResult, scoresResult] = await Promise.all([
             pool.query('SELECT COUNT(*) FROM exams'),
             pool.query('SELECT COUNT(*) FROM users'),
@@ -54,8 +65,9 @@ app.use(errorHandler)
 
 // הפעלת השרת
 app.listen(PORT, () => {
+    const dbMode = process.env.DB_MODE || 'render_pg'
     console.log('=========================================')
     console.log(`🚀 E-Test Server running on port ${PORT}`)
-    console.log('🐘 Database: PostgreSQL')
+    console.log(`📂 Database Mode: ${dbMode}`)
     console.log('=========================================')
 })
