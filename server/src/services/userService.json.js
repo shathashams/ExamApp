@@ -13,21 +13,16 @@ class UserJsonService {
         })).sort((a, b) => a.id - b.id)
     }
 
-    // התחברות לפי username ו-password
-    async loginUser(username, password) {
+    // שליפת משתמש כולל סיסמה (מוצפנת/במקור) לצורך אימות התחברות
+    async getUserWithPassword(username) {
         const db = await readDb()
         const users = db.users || []
-        const user = users.find(u => u.username === username && u.password === password)
+        const user = users.find(u => u.username === username)
         if (!user) return null
-        return {
-            id: user.id,
-            username: user.username,
-            fullName: user.fullName,
-            role: user.role
-        }
+        return user
     }
 
-    // קבלת משתמש לפי username
+    // קבלת משתמש לפי username (ללא סיסמה)
     async getUserByUsername(username) {
         const db = await readDb()
         const users = db.users || []

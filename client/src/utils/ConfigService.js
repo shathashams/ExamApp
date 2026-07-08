@@ -41,7 +41,7 @@ class ConfigService {
   }
 
   // שומר את מצב העבודה ב-localStorage
-  setDataMode(mode) {
+  setDataMode() {
     localStorage.setItem('dataMode', 'SERVER')
   }
 

@@ -1,4 +1,8 @@
 import userService from '../services/userService.js'
+import bcrypt from 'bcrypt'
+import { generateToken } from '../middleware/auth.js'
+
+const SALT_ROUNDS = 10
 
 class UserController {
     // קבלת כל המשתמשים ללא סיסמאות
@@ -22,9 +26,19 @@ class UserController {
                 throw err
             }
 
-            const user = await userService.loginUser(username, password)
+            // שליפת המשתמש כולל הסיסמה המוצפנת לצורך השוואה
+            const user = await userService.getUserWithPassword(username)
 
             if (!user) {
+                const err = new Error('Invalid username or password')
+                err.status = 401
+                throw err
+            }
+
+            // השוואת הסיסמה שהוזנה מול ההאש השמור
+            const isPasswordValid = await bcrypt.compare(password, user.password)
+
+            if (!isPasswordValid) {
                 const err = new Error('Invalid username or password')
                 err.status = 401
                 throw err
@@ -36,7 +50,17 @@ class UserController {
                 throw err
             }
 
-            res.json(user)
+            // יצירת טוקן JWT
+            const safeUser = {
+                id: user.id,
+                username: user.username,
+                fullName: user.fullName,
+                role: user.role
+            }
+
+            const token = generateToken(safeUser)
+
+            res.json({ token, user: safeUser })
         } catch (error) {
             next(error)
         }
@@ -73,14 +97,20 @@ class UserController {
                 throw err
             }
 
+            // הצפנת הסיסמה לפני שמירה
+            const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS)
+
             const newUser = await userService.registerUser({
                 username,
-                password,
+                password: hashedPassword,
                 fullName,
                 role
             })
 
-            res.status(201).json(newUser)
+            // יצירת טוקן JWT לאחר הרשמה
+            const token = generateToken(newUser)
+
+            res.status(201).json({ token, user: newUser })
         } catch (error) {
             next(error)
         }
