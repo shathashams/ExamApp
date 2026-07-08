@@ -13,6 +13,7 @@ import TeacherStudentResults from './teacherPages/TeacherStudentResults'
 import StorageService from './utils/StorageService'
 import * as authService from './api/authService'
 import * as scoreService from './api/scoreService'
+import { getFeedbacks, acknowledgeFeedback } from './api/feedbackService'
 import './App.css'
 
 function App() {
@@ -34,6 +35,12 @@ function App() {
   // שומר את מצב העיצוב (ערכת נושא)
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light')
 
+  // שומר את כל ציוני התלמידים (בשביל דף ציונים של מורה ותלמידים)
+  const [studentResults, setStudentResults] = useState([])
+
+  // שומר את פידבקי/שאלות התלמידים למורה והמענים להם
+  const [feedbacks, setFeedbacks] = useState([])
+
   // החלת ערכת הנושא בעת שינוי
   useEffect(() => {
     if (theme === 'dark') {
@@ -43,9 +50,6 @@ function App() {
     }
     localStorage.setItem('theme', theme)
   }, [theme])
-
-  // שומר את תוצאות המבחנים שהתלמידים הגישו
-  const [studentResults, setStudentResults] = useState([])
 
   // טעינת ציונים מהשרת/זיכרון מקומי
   useEffect(() => {
@@ -62,20 +66,44 @@ function App() {
     fetchScores()
   }, [user, dataMode])
 
-  // בורר ערכת נושא בלבד כשאין משתמש מחובר
-  const renderThemeToggle = () => (
-    <div className="d-flex justify-content-end mb-3">
-      <button
-        type="button"
-        className="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center p-0"
-        onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-        title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
-        style={{ borderRadius: '50%', width: '32px', height: '32px', border: '1.5px solid #cbd5e1' }}
-      >
-        {theme === 'light' ? '🌙' : '☀️'}
-      </button>
-    </div>
-  )
+  // טעינת פידבקים מהשרת בעת התחברות משתמש
+  useEffect(() => {
+    const fetchFeedbacks = async () => {
+      if (user) {
+        try {
+          const fb = await getFeedbacks()
+          setFeedbacks(fb)
+        } catch (err) {
+          console.error('Failed to fetch feedbacks:', err)
+        }
+      }
+    }
+    fetchFeedbacks()
+  }, [user])
+
+  // טיפול בעדכון רשימת הפידבקים לאחר הגשת פידבק חדש על ידי סטודנט
+  const handleFeedbackSubmitted = (newFeedback) => {
+    setFeedbacks((prev) => [newFeedback, ...prev])
+  }
+
+  // טיפול בעדכון רשימת הפידבקים לאחר מענה של מורה
+  const handleRespondToFeedback = (updatedFeedback) => {
+    setFeedbacks((prev) =>
+      prev.map((f) => (f.id === updatedFeedback.id ? updatedFeedback : f))
+    )
+  }
+
+  // אישור קבלת מענה על ידי סטודנט (מחיקת באנר התראה מהמסך שלו)
+  const handleDismissFeedbackAlert = async (feedbackId) => {
+    try {
+      await acknowledgeFeedback(feedbackId)
+      setFeedbacks((prev) =>
+        prev.map((f) => (f.id === feedbackId ? { ...f, studentAcknowledged: true } : f))
+      )
+    } catch (err) {
+      console.error('Failed to acknowledge feedback:', err)
+    }
+  }
 
   // התחברות - קריאה ל-authService שמנתב ל-Server או ל-Mock לפי המצב
   const handleLogin = async (username, password, role) => {
@@ -116,13 +144,28 @@ function App() {
   // יציאה מהמערכת וחזרה למסך ההתחברות
   const handleLogout = () => {
     setUser(null)
+    setFeedbacks([])
     StorageService.remove('user')
     setAuthMode('login')
     setActivePage('teacherDashboard')
   }
 
+  // בורר ערכת נושא בלבד כשאין משתמש מחובר
+  const renderThemeToggle = () => (
+    <div className="d-flex justify-content-end mb-3">
+      <button
+        type="button"
+        className="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center p-0"
+        onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+        title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+        style={{ borderRadius: '50%', width: '32px', height: '32px', border: '1.5px solid #cbd5e1' }}
+      >
+        {theme === 'light' ? '🌙' : '☀️'}
+      </button>
+    </div>
+  )
+
   // אם אין משתמש מחובר, מציגים Login או Register
-  // אם אין משתמש מחובר, מציגים את הבאנר + Login או Register
   if (!user) {
     return (
       <div className="container mt-4">
@@ -155,9 +198,39 @@ function App() {
         onToggleTheme={() => setTheme(theme === 'light' ? 'dark' : 'light')}
       />
 
+      {/* התראות מענה של מורה שמופיעות לסטודנט בדשבורד שלו */}
+      {user.role === 'student' && (
+        <div className="student-alerts-container mb-3 text-start">
+          {feedbacks
+            .filter((f) => f.teacherResponse && !f.studentAcknowledged)
+            .map((f) => (
+              <div key={f.id} className="alert alert-info alert-dismissible fade show shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-2" role="alert">
+                <div style={{ flex: '1 1 auto' }}>
+                  <h6 className="alert-heading fw-bold mb-1">📢 Teacher responded to your feedback!</h6>
+                  <p className="mb-0 small">
+                    <strong>Exam:</strong> {f.examTitle}<br />
+                    <strong>Your Question:</strong> "{f.message}"<br />
+                    <strong>Teacher's Reply:</strong> <span className="fw-semibold text-primary">"{f.teacherResponse}"</span>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-outline-info btn-sm fw-bold px-3 shadow-sm"
+                  onClick={() => handleDismissFeedbackAlert(f.id)}
+                >
+                  Understood, Dismiss Alert
+                </button>
+              </div>
+            ))}
+        </div>
+      )}
+
       {/* הצגת דף הבית של המורה */}
       {user.role === 'teacher' && activePage === 'teacherDashboard' && (
-        <TeacherDashboard />
+        <TeacherDashboard
+          feedbacks={feedbacks}
+          onRespondToFeedback={handleRespondToFeedback}
+        />
       )}
 
       {/* הצגת דף יצירת מבחן למורה */}
@@ -194,6 +267,8 @@ function App() {
               result.studentName === user.fullName ||
               result.studentName === user.username
           )}
+          feedbacks={feedbacks}
+          onFeedbackSubmitted={handleFeedbackSubmitted}
         />
       )}
     </div>

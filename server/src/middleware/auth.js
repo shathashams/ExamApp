@@ -20,7 +20,8 @@ export const checkAuth = (req, res, next) => {
         req.user = {
             id: decoded.id,
             role: decoded.role,
-            username: decoded.username
+            username: decoded.username,
+            fullName: decoded.fullName
         }
         next()
     } catch (error) {
@@ -34,7 +35,8 @@ export const generateToken = (user) => {
         {
             id: user.id,
             role: user.role,
-            username: user.username
+            username: user.username,
+            fullName: user.fullName
         },
         JWT_SECRET,
         { expiresIn: '24h' }

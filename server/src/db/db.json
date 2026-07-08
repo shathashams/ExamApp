@@ -371,5 +371,29 @@
       "feedback": null,
       "manualGrade": null
     }
+  ],
+  "studentFeedbacks": [
+    {
+      "id": 1,
+      "studentId": 4,
+      "studentName": "Lina Mansour",
+      "examId": 1,
+      "examTitle": "Math Exam",
+      "message": "I had trouble with Question 2. I think option 2 could also be correct.",
+      "teacherResponse": "Thank you for your feedback. Option 2 is incorrect because...",
+      "status": "resolved",
+      "studentAcknowledged": false
+    },
+    {
+      "id": 2,
+      "studentId": 3,
+      "studentName": "Noor Ahmed",
+      "examId": 1,
+      "examTitle": "Math Exam",
+      "message": "Excellent exam! Very clear and helpful.",
+      "teacherResponse": null,
+      "status": "pending",
+      "studentAcknowledged": false
+    }
   ]
 }
