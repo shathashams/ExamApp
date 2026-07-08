@@ -102,7 +102,8 @@ function App() {
           examTitle: result.examTitle,
           score: result.score,
           totalQuestions: result.totalQuestions,
-          grade: result.grade
+          grade: result.grade,
+          answers: result.answers
         }
         const savedScore = await scoreService.saveScore(scoreData, user.id, user.role, user.username)
         setStudentResults([...studentResults, savedScore])

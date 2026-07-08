@@ -50,7 +50,8 @@ class ScoreJsonService {
         score,
         totalQuestions = 0,
         grade = 0,
-        date = new Date().toISOString().split('T')[0]
+        date = new Date().toISOString().split('T')[0],
+        answers = {}
     }) {
         const db = await readDb()
         db.studentScores = db.studentScores || []
@@ -65,7 +66,8 @@ class ScoreJsonService {
             score: Number(score),
             totalQuestions: Number(totalQuestions),
             grade: Number(grade),
-            date
+            date,
+            answers: typeof answers === 'string' ? JSON.parse(answers) : answers
         }
 
         db.studentScores.push(newScore)

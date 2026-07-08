@@ -49,7 +49,7 @@ class ScoreController {
                 throw err
             }
 
-            const { examId, examTitle, score, totalQuestions, grade } = req.body
+            const { examId, examTitle, score, totalQuestions, grade, answers } = req.body
 
             if (!examId) {
                 const err = new Error('examId is required')
@@ -64,7 +64,8 @@ class ScoreController {
                 examTitle,
                 score,
                 totalQuestions,
-                grade
+                grade,
+                answers: answers || {}
             })
 
             res.status(201).json(newScore)

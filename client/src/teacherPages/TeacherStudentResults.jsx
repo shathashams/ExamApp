@@ -1,7 +1,8 @@
 // דף ציוני תלמידים למורה
 // מאפשר למורה לבחור מבחן ולראות ציונים, ממוצע וגרף קווי של התפלגות הציונים
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { getAllExams } from '../api/examService'
 
 function TeacherStudentResults({ results }) {
   // יצירת רשימת שמות מבחנים ייחודית מתוך כל התוצאות
@@ -17,6 +18,25 @@ function TeacherStudentResults({ results }) {
   const filteredResults = results.filter(
     (result) => result.examTitle === activeExam
   )
+
+  // רשימת המבחנים שנמשכו מהשרת לצורך הצגת השאלות והתשובות
+  const [exams, setExams] = useState([])
+
+  // שמירת הפרטים של ההגשה שנבחרה לצורך הצגת התשובות
+  const [selectedSubmission, setSelectedSubmission] = useState(null)
+
+  // טעינת רשימת המבחנים לצורך תצוגת תשובות
+  useEffect(() => {
+    const fetchExams = async () => {
+      try {
+        const data = await getAllExams()
+        setExams(data)
+      } catch (err) {
+        console.error('Failed to load exams inside results view:', err)
+      }
+    }
+    fetchExams()
+  }, [])
 
   // מיון הציונים מהגבוה לנמוך כדי ליצור גרף כמו התפלגות ציונים
   const sortedGrades = filteredResults
@@ -76,6 +96,9 @@ function TeacherStudentResults({ results }) {
     )
   }
 
+  // חיפוש המבחן הפעיל כדי למצוא את השאלות שלו
+  const currentExamData = exams.find(e => e.title === activeExam)
+
   return (
     <div className="card shadow-sm">
       <div className="card-body p-4">
@@ -107,7 +130,7 @@ function TeacherStudentResults({ results }) {
             <div className="card border-primary h-100">
               <div className="card-body text-center">
                 <h6 className="text-muted">Selected Exam</h6>
-                <h4>{selectedExam}</h4>
+                <h4>{activeExam}</h4>
               </div>
             </div>
           </div>
@@ -142,6 +165,7 @@ function TeacherStudentResults({ results }) {
               <th>Correct Answers</th>
               <th>Total Questions</th>
               <th>Grade</th>
+              <th>Actions</th>
             </tr>
           </thead>
 
@@ -153,10 +177,112 @@ function TeacherStudentResults({ results }) {
                 <td>{result.score}</td>
                 <td>{result.totalQuestions}</td>
                 <td>{result.grade}%</td>
+                <td>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={() => setSelectedSubmission(result)}
+                  >
+                    View Answers
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+
+        {/* מודל להצגת התשובות של הסטודנט */}
+        {selectedSubmission && (
+          <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+            <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+              <div className="modal-content shadow-lg">
+                <div className="modal-header bg-primary text-white">
+                  <h5 className="modal-title">
+                    Review Submission — {selectedSubmission.studentName}
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    onClick={() => setSelectedSubmission(null)}
+                  ></button>
+                </div>
+                <div className="modal-body p-4">
+                  <div className="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2 pb-3 border-bottom">
+                    <div>
+                      <h6 className="text-muted mb-1">Assessment</h6>
+                      <h5 className="fw-bold mb-0">{selectedSubmission.examTitle}</h5>
+                    </div>
+                    <div className="text-end">
+                      <span className="fs-5 fw-bold me-3">Grade: {selectedSubmission.grade}%</span>
+                      <span className="badge bg-light text-dark border p-2">
+                        {selectedSubmission.score} / {selectedSubmission.totalQuestions} Correct
+                      </span>
+                    </div>
+                  </div>
+
+                  {currentExamData ? (
+                    <div className="d-flex flex-column gap-3">
+                      {currentExamData.questions.map((q, idx) => {
+                        const studentAns = selectedSubmission.answers ? selectedSubmission.answers[q.id] || selectedSubmission.answers[String(q.id)] : null;
+                        const isCorrect = studentAns === q.answer;
+                        return (
+                          <div
+                            key={q.id || idx}
+                            className={`p-3 rounded border ${
+                              isCorrect
+                                ? 'border-success-subtle bg-success-subtle bg-opacity-10'
+                                : 'border-danger-subtle bg-danger-subtle bg-opacity-10'
+                            }`}
+                          >
+                            <div className="d-flex justify-content-between align-items-start gap-3 mb-2">
+                              <h6 className="fw-bold mb-0 text-start">
+                                Question {idx + 1}: {q.text}
+                              </h6>
+                              <span className={`badge ${isCorrect ? 'bg-success' : 'bg-danger'} px-2 py-1`}>
+                                {isCorrect ? 'Correct ✓' : 'Incorrect ✗'}
+                              </span>
+                            </div>
+                            <div className="small text-start">
+                              <div className="mb-1">
+                                <strong>Student's Answer: </strong>
+                                <span className={isCorrect ? 'text-success fw-bold' : 'text-danger fw-bold'}>
+                                  {studentAns || '(No Answer)'}
+                                </span>
+                              </div>
+                              <div>
+                                <strong>Correct Answer: </strong>
+                                <span className="text-success fw-bold">{q.answer}</span>
+                              </div>
+                              {q.options && q.options.length > 0 && (
+                                <div className="text-muted mt-2 pt-2 border-top border-light-subtle">
+                                  <strong>Options: </strong>
+                                  {q.options.join(', ')}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="alert alert-warning mb-0">
+                      Could not retrieve exam questions from the database to map answers.
+                    </div>
+                  )}
+                </div>
+                <div className="modal-footer bg-light">
+                  <button
+                    type="button"
+                    className="btn btn-secondary px-4"
+                    onClick={() => setSelectedSubmission(null)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* גרף קווי של ציוני הסטודנטים */}
         <h4 className="mt-4 mb-3">Grade Line Chart</h4>
