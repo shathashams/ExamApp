@@ -1,4 +1,5 @@
 -- Drop tables if they exist
+DROP TABLE IF EXISTS "studentFeedbacks";
 DROP TABLE IF EXISTS "studentScores";
 DROP TABLE IF EXISTS "exams";
 DROP TABLE IF EXISTS "users";
@@ -72,3 +73,24 @@ INSERT INTO "studentScores" ("id", "studentName", "studentId", "examId", "examTi
 (7, 'Noor Ahmed', 3, 3, 'Computer Science Exam', 2, 3, 67, '2026-06-04', '{"q1": "Queue", "q2": "Hyper Text Markup Language", "q3": "#"}'::jsonb);
 
 SELECT setval('"studentScores_id_seq"', (SELECT MAX("id") FROM "studentScores"));
+
+-- 4. Create Student Feedbacks Table
+CREATE TABLE "studentFeedbacks" (
+    "id" SERIAL PRIMARY KEY,
+    "studentId" INTEGER REFERENCES "users"("id") ON DELETE CASCADE NOT NULL,
+    "studentName" VARCHAR(100) NOT NULL,
+    "examId" INTEGER REFERENCES "exams"("id") ON DELETE CASCADE NOT NULL,
+    "examTitle" VARCHAR(150) NOT NULL,
+    "message" TEXT NOT NULL,
+    "teacherResponse" TEXT,
+    "status" VARCHAR(20) DEFAULT 'pending',
+    "studentAcknowledged" BOOLEAN DEFAULT FALSE,
+    "createdAt" TIMESTAMP DEFAULT NOW()
+);
+
+-- Seed Initial Feedbacks
+INSERT INTO "studentFeedbacks" ("id", "studentId", "studentName", "examId", "examTitle", "message", "teacherResponse", "status", "studentAcknowledged") VALUES
+(1, 4, 'Lina Mansour', 1, 'Math Exam', 'I had trouble with Question 2. I think option 2 could also be correct.', 'Thank you for your feedback. Option 2 is incorrect because...', 'resolved', FALSE),
+(2, 3, 'Noor Ahmed', 1, 'Math Exam', 'Excellent exam! Very clear and helpful.', NULL, 'pending', FALSE);
+
+SELECT setval('"studentFeedbacks_id_seq"', (SELECT MAX("id") FROM "studentFeedbacks"));

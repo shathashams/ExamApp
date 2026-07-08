@@ -1,7 +1,42 @@
 // דף תוצאות לתלמיד
-// מציג את כל המבחנים שהתלמיד הגיש ואת הציונים שלו
+// מציג את כל המבחנים שהתלמיד הגיש ואת הציונים שלו, ומאפשר לשלוח פידבק למורה
 
-function StudentResults({ results }) {
+import { useState } from 'react'
+import { submitFeedback } from '../api/feedbackService'
+
+function StudentResults({ results, feedbacks = [], onFeedbackSubmitted }) {
+  const [activeFeedbackExamId, setActiveFeedbackExamId] = useState(null)
+  const [feedbackMsg, setFeedbackMsg] = useState('')
+  const [submittingFeedback, setSubmittingFeedback] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+
+  // שליחת פידבק חדש לשרת
+  const handleSendFeedback = async (examId, examTitle) => {
+    if (!feedbackMsg.trim()) {
+      setSubmitError('Please enter a message.')
+      return
+    }
+
+    setSubmittingFeedback(true)
+    setSubmitError('')
+    try {
+      const newFb = await submitFeedback({
+        examId,
+        examTitle,
+        message: feedbackMsg,
+      })
+      if (onFeedbackSubmitted) {
+        onFeedbackSubmitted(newFb)
+      }
+      setActiveFeedbackExamId(null)
+      setFeedbackMsg('')
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to submit feedback')
+    } finally {
+      setSubmittingFeedback(false)
+    }
+  }
+
   // אם עדיין אין תוצאות, מציגים הודעה מתאימה לתלמיד
   if (results.length === 0) {
     return (
@@ -29,8 +64,8 @@ function StudentResults({ results }) {
   return (
     <div className="card shadow-sm">
       <div className="card-body p-4">
-        <h2 className="mb-1">🎓 Student Results</h2>
-        <p className="text-muted mb-4">
+        <h2 className="mb-1 text-start">🎓 Student Results</h2>
+        <p className="text-muted mb-4 text-start">
           Here you can see the exams you submitted and your grades.
         </p>
 
@@ -45,7 +80,7 @@ function StudentResults({ results }) {
           </div>
         </div>
 
-        <h5 className="fw-bold mb-3">Submitted Assessments</h5>
+        <h5 className="fw-bold mb-3 text-start">Submitted Assessments</h5>
 
         {/* רשימת המבחנים בעיצוב מודרני */}
         <div className="list-group">
@@ -53,6 +88,11 @@ function StudentResults({ results }) {
             const finalGrade = getFinalGrade(result)
             const isPassed = finalGrade >= 60
             const hasOverride = result.manualGrade !== null && result.manualGrade !== undefined
+            
+            // סינון פידבקים קודמים שנשלחו על ידי הסטודנט למבחן זה
+            const examFeedbacks = feedbacks.filter(
+              (f) => f.examId === result.examId
+            )
 
             return (
               <div
@@ -93,8 +133,72 @@ function StudentResults({ results }) {
                 {/* משוב המורה במידה וקיים */}
                 {result.feedback && (
                   <div className="mt-3 p-3 bg-light border-start border-primary border-4 rounded small text-muted">
-                    <strong className="text-dark d-block mb-1">Teacher Feedback:</strong>
+                    <strong className="text-dark d-block mb-1">Teacher Exam Feedback:</strong>
                     "{result.feedback}"
+                  </div>
+                )}
+
+                {/* היסטוריית שאלות/פידבקים שהסטודנט שלח */}
+                {examFeedbacks.length > 0 && (
+                  <div className="mt-3">
+                    <strong className="text-muted d-block small mb-1">Questions / Feedback sent:</strong>
+                    {examFeedbacks.map((f) => (
+                      <div key={f.id} className="p-2 mb-2 bg-light border-start border-info border-3 rounded small text-start">
+                        <strong>Your question:</strong> "{f.message}"
+                        {f.teacherResponse ? (
+                          <div className="mt-1 text-primary">
+                            <strong>Teacher response:</strong> "{f.teacherResponse}"
+                          </div>
+                        ) : (
+                          <div className="mt-1 text-muted">
+                            <em>Waiting for teacher's reply...</em>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* טופס שליחת פידבק inline */}
+                {activeFeedbackExamId === result.examId ? (
+                  <div className="mt-3 p-3 bg-light border rounded text-start">
+                    <h6 className="fw-bold mb-2 small text-primary">Send Feedback or Ask Question</h6>
+                    <textarea
+                      className="form-control form-control-sm mb-2"
+                      rows="2"
+                      placeholder="Ask the teacher a question or write your feedback about this exam..."
+                      value={feedbackMsg}
+                      onChange={(e) => setFeedbackMsg(e.target.value)}
+                    ></textarea>
+                    <div className="d-flex gap-2 justify-content-end">
+                      <button
+                        className="btn btn-light btn-sm"
+                        onClick={() => setActiveFeedbackExamId(null)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="btn btn-primary btn-sm px-3"
+                        disabled={submittingFeedback}
+                        onClick={() => handleSendFeedback(result.examId, result.examTitle)}
+                      >
+                        {submittingFeedback ? 'Sending...' : 'Send Message'}
+                      </button>
+                    </div>
+                    {submitError && <div className="text-danger small mt-1">{submitError}</div>}
+                  </div>
+                ) : (
+                  <div className="mt-3 text-start">
+                    <button
+                      className="btn btn-outline-secondary btn-sm"
+                      onClick={() => {
+                        setActiveFeedbackExamId(result.examId)
+                        setFeedbackMsg('')
+                        setSubmitError('')
+                      }}
+                    >
+                      💬 Ask a Question / Give Feedback
+                    </button>
                   </div>
                 )}
               </div>
