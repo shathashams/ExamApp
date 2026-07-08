@@ -40,13 +40,13 @@ CREATE TABLE "studentScores" (
 
 -- Seed Initial Data
 INSERT INTO "users" ("id", "username", "password", "fullName", "role") VALUES
-(1, 'teacher1', '123444', 'Maya Cohen', 'teacher'),
-(2, 'teacher2', '23417', 'Rami Levi', 'teacher'),
-(3, 'student1', '1789', 'Noor Ahmed', 'student'),
-(4, 'student2', '258', 'Lina Mansour', 'student'),
-(5, 'student3', '12345', 'Adam Saleh', 'student'),
-(6, 'student80', '404040', 'Adel kocari', 'student'),
-(7, 'student66', '124', 'Mila fihs', 'teacher');
+(1, 'teacher1', '$2b$10$mZxLs7WZBlVQ6dMLs1yBHevWT9dEgdiqp5U2oChlan.Xt71DH4MGK', 'Maya Cohen', 'teacher'),
+(2, 'teacher2', '$2b$10$5qFQxP8HAPXfjeg0wOGssuUfYbIkLtPJl9E2FKYKs3NdCHqcyIcd6', 'Rami Levi', 'teacher'),
+(3, 'student1', '$2b$10$zat.312RMajDeHd1GTMYxejJUwoN/CBTgZ.SL4DaG7bGAztt70LHy', 'Noor Ahmed', 'student'),
+(4, 'student2', '$2b$10$OY3t2WwKey/yObLCqB75buzlb/KjO8Gyvj.P8caG8OoDvoZ.SHBTa', 'Lina Mansour', 'student'),
+(5, 'student3', '$2b$10$7p/FP0EyV6OfX7ZW/zUReedBXcKKmZjfNQRzjAbDp9X2wrJr3SsRG', 'Adam Saleh', 'student'),
+(6, 'student80', '$2b$10$aASWzgpbPkNX7zqMboWlBep8bT26mdEmhkwylUbY/cC3OxVGWpNT6', 'Adel kocari', 'student'),
+(7, 'student66', '$2b$10$759l8AUj0/wS4mMbv.CbbuLy5PwBbAPx4wHLTHFj0NUH7Py3hmFri', 'Mila fihs', 'teacher');
 
 SELECT setval('"users_id_seq"', (SELECT MAX("id") FROM "users"));
 

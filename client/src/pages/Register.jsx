@@ -7,7 +7,7 @@ function Register({ onRegister, onSwitchToLogin }) {
   const [fullName, setFullName] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState('student')
+  const role = 'student'
 
   // שמירת הודעת שגיאה ומצב טעינה
   const [error, setError] = useState('')

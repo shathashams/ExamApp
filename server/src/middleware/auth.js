@@ -1,17 +1,42 @@
-// Middleware to validate user authorization headers and set req.user context
+import jwt from 'jsonwebtoken'
+import dotenv from 'dotenv'
+
+dotenv.config()
+
+const JWT_SECRET = process.env.JWT_SECRET || 'exam-app-default-secret-key'
+
+// Middleware to validate JWT token and set req.user context
 export const checkAuth = (req, res, next) => {
-    const userId = req.headers['x-user-id']
-    const userRole = req.headers['x-user-role']
-    const userUsername = req.headers['x-user-username']
+    const authHeader = req.headers['authorization']
 
-    if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized: User ID is required' })
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized: Token is required' })
     }
 
-    req.user = {
-        id: Number(userId),
-        role: userRole,
-        username: userUsername || ''
+    const token = authHeader.split(' ')[1]
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET)
+        req.user = {
+            id: decoded.id,
+            role: decoded.role,
+            username: decoded.username
+        }
+        next()
+    } catch (error) {
+        return res.status(401).json({ error: 'Unauthorized: Invalid or expired token' })
     }
-    next()
+}
+
+// Helper function to generate JWT token
+export const generateToken = (user) => {
+    return jwt.sign(
+        {
+            id: user.id,
+            role: user.role,
+            username: user.username
+        },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+    )
 }

@@ -7,49 +7,49 @@
     {
       "id": 1,
       "username": "teacher1",
-      "password": "123444",
+      "password": "$2b$10$mZxLs7WZBlVQ6dMLs1yBHevWT9dEgdiqp5U2oChlan.Xt71DH4MGK",
       "fullName": "Maya Cohen",
       "role": "teacher"
     },
     {
       "id": 2,
       "username": "teacher2",
-      "password": "23417",
+      "password": "$2b$10$5qFQxP8HAPXfjeg0wOGssuUfYbIkLtPJl9E2FKYKs3NdCHqcyIcd6",
       "fullName": "Rami Levi",
       "role": "teacher"
     },
     {
       "id": 3,
       "username": "student1",
-      "password": "1789",
+      "password": "$2b$10$zat.312RMajDeHd1GTMYxejJUwoN/CBTgZ.SL4DaG7bGAztt70LHy",
       "fullName": "Noor Ahmed",
       "role": "student"
     },
     {
       "id": 4,
       "username": "student2",
-      "password": "258",
+      "password": "$2b$10$OY3t2WwKey/yObLCqB75buzlb/KjO8Gyvj.P8caG8OoDvoZ.SHBTa",
       "fullName": "Lina Mansour",
       "role": "student"
     },
     {
       "id": 5,
       "username": "student3",
-      "password": "12345",
+      "password": "$2b$10$7p/FP0EyV6OfX7ZW/zUReedBXcKKmZjfNQRzjAbDp9X2wrJr3SsRG",
       "fullName": "Adam Saleh",
       "role": "student"
     },
     {
       "id": 6,
       "username": "student80",
-      "password": "404040",
+      "password": "$2b$10$aASWzgpbPkNX7zqMboWlBep8bT26mdEmhkwylUbY/cC3OxVGWpNT6",
       "fullName": "Adel kocari",
       "role": "student"
     },
     {
       "id": 7,
       "username": "student66",
-      "password": "124",
+      "password": "$2b$10$759l8AUj0/wS4mMbv.CbbuLy5PwBbAPx4wHLTHFj0NUH7Py3hmFri",
       "fullName": "Mila fihs",
       "role": "teacher"
     }

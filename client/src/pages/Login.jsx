@@ -2,7 +2,6 @@
 // המשתמש מכניס שם משתמש וסיסמה - התפקיד מגיע מה-DB בצד שרת
 
 import { useState } from 'react'
-import ConfigService from '../utils/ConfigService'
 
 function Login({ onLogin, onSwitchToRegister }) {
   // שמירת הערכים שהמשתמש מכניס בטופס
@@ -14,9 +13,6 @@ function Login({ onLogin, onSwitchToRegister }) {
   // שמירת הודעת שגיאה ומצב טעינה
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
-  // במצב שרת התפקיד מגיע מה-DB ולא מבחירת המשתמש
-  const serverMode = ConfigService.isServerMode()
 
   const handleAutofillDemo = (demoUsername, demoPassword, demoRole) => {
     setUsername(demoUsername)

@@ -15,14 +15,12 @@ const delay = (data) => {
 // בודק האם לעבוד מול Server או מול Mock Client
 const isServerMode = () => ConfigService.isServerMode()
 
-// יצירת כותרות אימות מול השרת
+// יצירת כותרות אימות מול השרת עם Bearer token
 const getAuthHeaders = () => {
   const user = StorageService.get('user')
   const headers = { 'Content-Type': 'application/json' }
-  if (user && user.id) {
-    headers['x-user-id'] = String(user.id)
-    headers['x-user-role'] = user.role
-    headers['x-user-username'] = user.username
+  if (user && user.token) {
+    headers['Authorization'] = `Bearer ${user.token}`
   }
   return headers
 }

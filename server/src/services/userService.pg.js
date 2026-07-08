@@ -15,22 +15,22 @@ class UserService {
         return result.rows
     }
 
-    // התחברות לפי username ו-password
-    async loginUser(username, password) {
+    // שליפת משתמש כולל סיסמה מוצפנת לצורך אימות התחברות
+    async getUserWithPassword(username) {
         const result = await pool.query(`
             SELECT
                 id,
                 username,
+                password,
                 "fullName",
                 role
             FROM users
             WHERE username = $1
-              AND password = $2
-        `, [username, password])
+        `, [username])
         return result.rows[0]
     }
 
-    // קבלת משתמש לפי username
+    // קבלת משתמש לפי username (ללא סיסמה)
     async getUserByUsername(username) {
         const result = await pool.query(`
             SELECT
@@ -44,7 +44,7 @@ class UserService {
         return result.rows[0]
     }
 
-    // הרשמת משתמש חדש
+    // הרשמת משתמש חדש (הסיסמה כבר מוצפנת ע"י הקונטרולר)
     async registerUser({ username, password, fullName, role }) {
         const result = await pool.query(`
             INSERT INTO users (

@@ -1,4 +1,5 @@
 import ConfigService from '../utils/ConfigService'
+import StorageService from '../utils/StorageService'
 
 // שירות לניהול ציונים מול השרת או זיכרון מקומי
 const isServerMode = () => ConfigService.isServerMode()
@@ -14,14 +15,19 @@ const mockScores = [
   { id: 7, studentName: 'Noor Ahmed', examId: 3, examTitle: 'Computer Science Exam', score: 2, totalQuestions: 3, grade: 67, date: '2026-06-04' },
 ]
 
+const getAuthHeaders = () => {
+  const user = StorageService.get('user')
+  const headers = { 'Content-Type': 'application/json' }
+  if (user && user.token) {
+    headers['Authorization'] = `Bearer ${user.token}`
+  }
+  return headers
+}
+
 export const getScores = async (userId, userRole, username) => {
   if (isServerMode()) {
     const response = await fetch(`${ConfigService.getApiBaseUrl()}/scores`, {
-      headers: {
-        'x-user-id': String(userId),
-        'x-user-role': userRole,
-        'x-user-username': username,
-      },
+      headers: getAuthHeaders(),
     })
     if (!response.ok) throw new Error('Failed to load scores from server')
     return response.json()
@@ -38,12 +44,7 @@ export const saveScore = async (scoreData, userId, userRole, username) => {
   if (isServerMode()) {
     const response = await fetch(`${ConfigService.getApiBaseUrl()}/scores`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-user-id': String(userId),
-        'x-user-role': userRole,
-        'x-user-username': username,
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(scoreData),
     })
     if (!response.ok) throw new Error('Failed to save score on server')

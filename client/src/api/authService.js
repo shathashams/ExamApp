@@ -22,7 +22,11 @@ export const login = async (username, password, role) => {
       throw new Error(data.error || 'Invalid username or password')
     }
 
-    return data
+    // מיזוג הטוקן עם פרטי המשתמש כדי לשמור ב-localStorage
+    return {
+      token: data.token,
+      ...data.user,
+    }
   }
 
   // FULLCLIENT: קבלת כל שם משתמש + סיסמה, התפקיד מהכפתור
@@ -48,7 +52,11 @@ export const register = async (username, password, fullName, role) => {
       throw new Error(data.error || 'Registration failed')
     }
 
-    return data
+    // מיזוג הטוקן עם פרטי המשתמש החדש
+    return {
+      token: data.token,
+      ...data.user,
+    }
   }
 
   // FULLCLIENT: בדיקת שם משתמש כפול ברשימה המקומית
