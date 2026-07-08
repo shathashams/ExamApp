@@ -189,7 +189,10 @@ function App() {
       {user.role === 'student' && activePage === 'results' && (
         <StudentResults
           results={studentResults.filter(
-            (result) => result.studentName === user.username
+            (result) =>
+              result.studentId === user.id ||
+              result.studentName === user.fullName ||
+              result.studentName === user.username
           )}
         />
       )}

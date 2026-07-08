@@ -14,7 +14,9 @@ class ScoreService {
                 s."totalQuestions",
                 s.grade,
                 s.date,
-                s.answers
+                s.answers,
+                s.feedback,
+                s."manualGrade"
             FROM "studentScores" s
             JOIN exams e ON s."examId" = e.id
             WHERE e."teacherId" = $1
@@ -36,7 +38,9 @@ class ScoreService {
                 "totalQuestions",
                 grade,
                 date,
-                answers
+                answers,
+                feedback,
+                "manualGrade"
             FROM "studentScores"
             WHERE "studentId" = $1
             ORDER BY id
@@ -57,7 +61,9 @@ class ScoreService {
                 s."totalQuestions",
                 s.grade,
                 s.date,
-                s.answers
+                s.answers,
+                s.feedback,
+                s."manualGrade"
             FROM "studentScores" s
             JOIN exams e ON s."examId" = e.id
             WHERE s."examId" = $1 AND e."teacherId" = $2
