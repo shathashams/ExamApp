@@ -3,8 +3,186 @@
 
 import { useState, useEffect } from 'react'
 import { getAllExams } from '../api/examService'
+import { updateScore } from '../api/scoreService'
 
-function TeacherStudentResults({ results }) {
+// קומפוננטת מודל להצגת תשובות ועריכת הציון והמשוב של הסטודנט
+function SubmissionReviewModal({ submission, currentExamData, onSave, onClose }) {
+  const [manualGradeVal, setManualGradeVal] = useState(
+    submission.manualGrade !== null && submission.manualGrade !== undefined
+      ? String(submission.manualGrade)
+      : ''
+  )
+  const [feedbackVal, setFeedbackVal] = useState(submission.feedback || '')
+  const [savingGrading, setSavingGrading] = useState(false)
+  const [gradingError, setGradingError] = useState('')
+  const [gradingSuccess, setGradingSuccess] = useState(false)
+
+  const handleSaveGrading = async () => {
+    setGradingError('')
+    setGradingSuccess(false)
+    setSavingGrading(true)
+    try {
+      await onSave({
+        feedback: feedbackVal,
+        manualGrade: manualGradeVal !== '' ? Number(manualGradeVal) : null,
+      })
+      setGradingSuccess(true)
+      setTimeout(() => setGradingSuccess(false), 3000)
+    } catch (err) {
+      console.error(err)
+      setGradingError('Failed to save manual grade and feedback. Please try again.')
+    } finally {
+      setSavingGrading(false)
+    }
+  }
+
+  const getFinalGrade = (sub) =>
+    sub.manualGrade !== null && sub.manualGrade !== undefined
+      ? sub.manualGrade
+      : sub.grade
+
+  return (
+    <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+      <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div className="modal-content shadow-lg">
+          <div className="modal-header bg-primary text-white">
+            <h5 className="modal-title">
+              Review Submission — {submission.studentName}
+            </h5>
+            <button
+              type="button"
+              className="btn-close btn-close-white"
+              onClick={onClose}
+            ></button>
+          </div>
+          <div className="modal-body p-4">
+            {/* Grade Override Card */}
+            <div className="card mb-4 border-primary">
+              <div className="card-header bg-primary bg-opacity-10 text-primary fw-bold">
+                Grade Override & Feedback
+              </div>
+              <div className="card-body">
+                <div className="row mb-3">
+                  <div className="col-md-4 text-start">
+                    <label className="form-label fw-semibold small">Manual Grade Override</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      placeholder="e.g. 85"
+                      min="0"
+                      max="100"
+                      value={manualGradeVal}
+                      onChange={(e) => setManualGradeVal(e.target.value)}
+                    />
+                    <small className="text-muted">
+                      Leave empty to use auto grade ({submission.grade}%)
+                    </small>
+                  </div>
+                  <div className="col-md-8 text-start">
+                    <label className="form-label fw-semibold small">Teacher Feedback / Notes</label>
+                    <textarea
+                      className="form-control"
+                      rows="2"
+                      placeholder="Write constructive feedback for the student..."
+                      value={feedbackVal}
+                      onChange={(e) => setFeedbackVal(e.target.value)}
+                    ></textarea>
+                  </div>
+                </div>
+                <div className="text-end">
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm px-4"
+                    onClick={handleSaveGrading}
+                    disabled={savingGrading}
+                  >
+                    {savingGrading ? 'Saving Changes...' : 'Save Grade & Feedback'}
+                  </button>
+                </div>
+                {gradingError && <div className="alert alert-danger mt-2 py-2 px-3 small">{gradingError}</div>}
+                {gradingSuccess && <div className="alert alert-success mt-2 py-2 px-3 small text-start">Changes saved successfully!</div>}
+              </div>
+            </div>
+
+            <div className="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2 pb-3 border-bottom">
+              <div className="text-start">
+                <h6 className="text-muted mb-1">Assessment</h6>
+                <h5 className="fw-bold mb-0">{submission.examTitle}</h5>
+              </div>
+              <div className="text-end">
+                <span className="fs-5 fw-bold me-3">Final Grade: {getFinalGrade(submission)}%</span>
+                <span className="badge bg-light text-dark border p-2">
+                  {submission.score} / {submission.totalQuestions} Correct
+                </span>
+              </div>
+            </div>
+
+            {currentExamData ? (
+              <div className="d-flex flex-column gap-3">
+                {currentExamData.questions.map((q, idx) => {
+                  const studentAns = submission.answers ? submission.answers[q.id] || submission.answers[String(q.id)] : null
+                  const isCorrect = studentAns === q.answer
+                  return (
+                    <div
+                      key={q.id || idx}
+                      className={`p-3 rounded border ${
+                        isCorrect
+                          ? 'border-success-subtle bg-success-subtle bg-opacity-10'
+                          : 'border-danger-subtle bg-danger-subtle bg-opacity-10'
+                      }`}
+                    >
+                      <div className="d-flex justify-content-between align-items-start gap-3 mb-2">
+                        <h6 className="fw-bold mb-0 text-start">
+                          Question {idx + 1}: {q.text}
+                        </h6>
+                        <span className={`badge ${isCorrect ? 'bg-success' : 'bg-danger'} px-2 py-1`}>
+                          {isCorrect ? 'Correct ✓' : 'Incorrect ✗'}
+                        </span>
+                      </div>
+                      <div className="small text-start">
+                        <div className="mb-1">
+                          <strong>Student's Answer: </strong>
+                          <span className={isCorrect ? 'text-success fw-bold' : 'text-danger fw-bold'}>
+                            {studentAns || '(No Answer)'}
+                          </span>
+                        </div>
+                        <div>
+                          <strong>Correct Answer: </strong>
+                          <span className="text-success fw-bold">{q.answer}</span>
+                        </div>
+                        {q.options && q.options.length > 0 && (
+                          <div className="text-muted mt-2 pt-2 border-top border-light-subtle">
+                            <strong>Options: </strong>
+                            {q.options.join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="alert alert-warning mb-0">
+                Could not retrieve exam questions from the database to map answers.
+              </div>
+            )}
+          </div>
+          <div className="modal-footer bg-light">
+            <button
+              type="button"
+              className="btn btn-secondary px-4"
+              onClick={onClose}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TeacherStudentResults({ results, onScoreUpdated }) {
   // יצירת רשימת שמות מבחנים ייחודית מתוך כל התוצאות
   const examNames = [...new Set(results.map((result) => result.examTitle))]
 
@@ -14,7 +192,12 @@ function TeacherStudentResults({ results }) {
   // המבחן שנבחר בפועל (במידה ולא נבחר כלום, ברירת המחדל היא הראשון ברשימה)
   const activeExam = selectedExam || examNames[0] || ''
 
-  // סינון התוצאות לפי המבחן שנבחר
+  // סינון התוצאות לפי המבחן שנבחר (מחשב את הציון הסופי עם העקפה הידנית)
+  const getFinalGrade = (result) =>
+    result.manualGrade !== null && result.manualGrade !== undefined
+      ? result.manualGrade
+      : result.grade
+
   const filteredResults = results.filter(
     (result) => result.examTitle === activeExam
   )
@@ -38,16 +221,16 @@ function TeacherStudentResults({ results }) {
     fetchExams()
   }, [])
 
-  // מיון הציונים מהגבוה לנמוך כדי ליצור גרף כמו התפלגות ציונים
+  // מיון הציונים מהגבוה לנמוך כדי ליצור גרף כמו התפלגות ציונים (ציון סופי)
   const sortedGrades = filteredResults
-    .map((result) => result.grade)
+    .map((result) => getFinalGrade(result))
     .sort((a, b) => b - a)
 
   // חישוב ממוצע ציונים
   const averageGrade =
     filteredResults.length > 0
       ? Math.round(
-          filteredResults.reduce((sum, result) => sum + result.grade, 0) /
+          filteredResults.reduce((sum, result) => sum + getFinalGrade(result), 0) /
             filteredResults.length
         )
       : 0
@@ -164,124 +347,60 @@ function TeacherStudentResults({ results }) {
               <th>Exam Name</th>
               <th>Correct Answers</th>
               <th>Total Questions</th>
-              <th>Grade</th>
+              <th>Final Grade</th>
               <th>Actions</th>
             </tr>
           </thead>
 
           <tbody>
-            {filteredResults.map((result) => (
-              <tr key={result.id}>
-                <td>{result.studentName}</td>
-                <td>{result.examTitle}</td>
-                <td>{result.score}</td>
-                <td>{result.totalQuestions}</td>
-                <td>{result.grade}%</td>
-                <td>
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-primary"
-                    onClick={() => setSelectedSubmission(result)}
-                  >
-                    View Answers
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {filteredResults.map((result) => {
+              const finalGrade = getFinalGrade(result)
+              const hasOverride = result.manualGrade !== null && result.manualGrade !== undefined
+
+              return (
+                <tr key={result.id}>
+                  <td>{result.studentName}</td>
+                  <td>{result.examTitle}</td>
+                  <td>{result.score}</td>
+                  <td>{result.totalQuestions}</td>
+                  <td>
+                    <span className="fw-bold">{finalGrade}%</span>
+                    {hasOverride && (
+                      <span className="badge bg-info text-dark ms-2" style={{ fontSize: '0.7rem' }}>
+                        Overridden
+                      </span>
+                    )}
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={() => setSelectedSubmission(result)}
+                    >
+                      View & Grade
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
 
-        {/* מודל להצגת התשובות של הסטודנט */}
+        {/* מודל להצגת התשובות ועריכת הציון והמשוב */}
         {selectedSubmission && (
-          <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-            <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-              <div className="modal-content shadow-lg">
-                <div className="modal-header bg-primary text-white">
-                  <h5 className="modal-title">
-                    Review Submission — {selectedSubmission.studentName}
-                  </h5>
-                  <button
-                    type="button"
-                    className="btn-close btn-close-white"
-                    onClick={() => setSelectedSubmission(null)}
-                  ></button>
-                </div>
-                <div className="modal-body p-4">
-                  <div className="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2 pb-3 border-bottom">
-                    <div>
-                      <h6 className="text-muted mb-1">Assessment</h6>
-                      <h5 className="fw-bold mb-0">{selectedSubmission.examTitle}</h5>
-                    </div>
-                    <div className="text-end">
-                      <span className="fs-5 fw-bold me-3">Grade: {selectedSubmission.grade}%</span>
-                      <span className="badge bg-light text-dark border p-2">
-                        {selectedSubmission.score} / {selectedSubmission.totalQuestions} Correct
-                      </span>
-                    </div>
-                  </div>
-
-                  {currentExamData ? (
-                    <div className="d-flex flex-column gap-3">
-                      {currentExamData.questions.map((q, idx) => {
-                        const studentAns = selectedSubmission.answers ? selectedSubmission.answers[q.id] || selectedSubmission.answers[String(q.id)] : null;
-                        const isCorrect = studentAns === q.answer;
-                        return (
-                          <div
-                            key={q.id || idx}
-                            className={`p-3 rounded border ${
-                              isCorrect
-                                ? 'border-success-subtle bg-success-subtle bg-opacity-10'
-                                : 'border-danger-subtle bg-danger-subtle bg-opacity-10'
-                            }`}
-                          >
-                            <div className="d-flex justify-content-between align-items-start gap-3 mb-2">
-                              <h6 className="fw-bold mb-0 text-start">
-                                Question {idx + 1}: {q.text}
-                              </h6>
-                              <span className={`badge ${isCorrect ? 'bg-success' : 'bg-danger'} px-2 py-1`}>
-                                {isCorrect ? 'Correct ✓' : 'Incorrect ✗'}
-                              </span>
-                            </div>
-                            <div className="small text-start">
-                              <div className="mb-1">
-                                <strong>Student's Answer: </strong>
-                                <span className={isCorrect ? 'text-success fw-bold' : 'text-danger fw-bold'}>
-                                  {studentAns || '(No Answer)'}
-                                </span>
-                              </div>
-                              <div>
-                                <strong>Correct Answer: </strong>
-                                <span className="text-success fw-bold">{q.answer}</span>
-                              </div>
-                              {q.options && q.options.length > 0 && (
-                                <div className="text-muted mt-2 pt-2 border-top border-light-subtle">
-                                  <strong>Options: </strong>
-                                  {q.options.join(', ')}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  ) : (
-                    <div className="alert alert-warning mb-0">
-                      Could not retrieve exam questions from the database to map answers.
-                    </div>
-                  )}
-                </div>
-                <div className="modal-footer bg-light">
-                  <button
-                    type="button"
-                    className="btn btn-secondary px-4"
-                    onClick={() => setSelectedSubmission(null)}
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <SubmissionReviewModal
+            submission={selectedSubmission}
+            currentExamData={currentExamData}
+            onClose={() => setSelectedSubmission(null)}
+            onSave={async (scoreData) => {
+              const updated = await updateScore(selectedSubmission.id, scoreData)
+              if (onScoreUpdated) {
+                onScoreUpdated(updated)
+              }
+              // עדכון ההגשה המקומית בטופס כדי לשקף את הנתונים החדשים
+              setSelectedSubmission(updated)
+            }}
+          />
         )}
 
         {/* גרף קווי של ציוני הסטודנטים */}

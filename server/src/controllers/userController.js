@@ -35,8 +35,13 @@ class UserController {
                 throw err
             }
 
-            // השוואת הסיסמה שהוזנה מול ההאש השמור
-            const isPasswordValid = await bcrypt.compare(password, user.password)
+            // השוואת הסיסמה שהוזנה מול ההאש השמור (תומך בסיסמאות פשוטות בקובץ db.json)
+            let isPasswordValid = false
+            if (user.password && user.password.startsWith('$2b$')) {
+                isPasswordValid = await bcrypt.compare(password, user.password)
+            } else {
+                isPasswordValid = (password === user.password)
+            }
 
             if (!isPasswordValid) {
                 const err = new Error('Invalid username or password')

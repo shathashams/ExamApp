@@ -75,6 +75,33 @@ class ScoreJsonService {
 
         return newScore
     }
+
+    // עדכון ציון ידני ומשוב - מוודא שהמבחן שייך למורה
+    async updateScore(id, { feedback, manualGrade }, teacherId) {
+        const db = await readDb()
+        db.studentScores = db.studentScores || []
+        db.exams = db.exams || []
+
+        const scoreIdx = db.studentScores.findIndex(s => s.id === Number(id))
+        if (scoreIdx === -1) return null
+
+        const score = db.studentScores[scoreIdx]
+        const exam = db.exams.find(e => e.id === score.examId)
+        if (!exam || exam.teacherId !== Number(teacherId)) {
+            return null
+        }
+
+        const updatedScore = {
+            ...score,
+            feedback: feedback !== undefined ? feedback : score.feedback,
+            manualGrade: manualGrade !== undefined ? manualGrade : score.manualGrade
+        }
+
+        db.studentScores[scoreIdx] = updatedScore
+        await writeDb(db)
+
+        return updatedScore
+    }
 }
 
 export default new ScoreJsonService()

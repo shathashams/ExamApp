@@ -36,7 +36,9 @@ CREATE TABLE "studentScores" (
     "totalQuestions" INTEGER NOT NULL,
     "grade" INTEGER NOT NULL,
     "date" VARCHAR(50) NOT NULL,
-    "answers" JSONB NOT NULL DEFAULT '{}'::jsonb
+    "answers" JSONB NOT NULL DEFAULT '{}'::jsonb,
+    "feedback" TEXT,
+    "manualGrade" INTEGER
 );
 
 -- Seed Initial Data

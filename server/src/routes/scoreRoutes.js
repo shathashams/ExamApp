@@ -16,4 +16,7 @@ router.get('/exam/:examId', scoreController.getScoresByExam)
 // שמירת ציון חדש (תלמידים בלבד)
 router.post('/', scoreController.saveScore)
 
+// עדכון ציון והוספת משוב (מורים בלבד)
+router.put('/:id', scoreController.updateScore)
+
 export default router

@@ -167,7 +167,14 @@ function App() {
 
       {/* הצגת ציוני תלמידים למורה */}
       {user.role === 'teacher' && activePage === 'teacherStudentResults' && (
-        <TeacherStudentResults results={studentResults} />
+        <TeacherStudentResults
+          results={studentResults}
+          onScoreUpdated={(updatedScore) => {
+            setStudentResults((prev) =>
+              prev.map((s) => (s.id === updatedScore.id ? updatedScore : s))
+            )
+          }}
+        />
       )}
 
       {/* הצגת פורטל התלמיד ושליחת פונקציה לשמירת הציון */}
@@ -182,7 +189,10 @@ function App() {
       {user.role === 'student' && activePage === 'results' && (
         <StudentResults
           results={studentResults.filter(
-            (result) => result.studentName === user.username
+            (result) =>
+              result.studentId === user.id ||
+              result.studentName === user.fullName ||
+              result.studentName === user.username
           )}
         />
       )}

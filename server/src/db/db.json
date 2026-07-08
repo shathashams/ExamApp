@@ -7,49 +7,49 @@
     {
       "id": 1,
       "username": "teacher1",
-      "password": "$2b$10$mZxLs7WZBlVQ6dMLs1yBHevWT9dEgdiqp5U2oChlan.Xt71DH4MGK",
+      "password": "123444",
       "fullName": "Maya Cohen",
       "role": "teacher"
     },
     {
       "id": 2,
       "username": "teacher2",
-      "password": "$2b$10$5qFQxP8HAPXfjeg0wOGssuUfYbIkLtPJl9E2FKYKs3NdCHqcyIcd6",
+      "password": "23417",
       "fullName": "Rami Levi",
       "role": "teacher"
     },
     {
       "id": 3,
       "username": "student1",
-      "password": "$2b$10$zat.312RMajDeHd1GTMYxejJUwoN/CBTgZ.SL4DaG7bGAztt70LHy",
+      "password": "1789",
       "fullName": "Noor Ahmed",
       "role": "student"
     },
     {
       "id": 4,
       "username": "student2",
-      "password": "$2b$10$OY3t2WwKey/yObLCqB75buzlb/KjO8Gyvj.P8caG8OoDvoZ.SHBTa",
+      "password": "258",
       "fullName": "Lina Mansour",
       "role": "student"
     },
     {
       "id": 5,
       "username": "student3",
-      "password": "$2b$10$7p/FP0EyV6OfX7ZW/zUReedBXcKKmZjfNQRzjAbDp9X2wrJr3SsRG",
+      "password": "12345",
       "fullName": "Adam Saleh",
       "role": "student"
     },
     {
       "id": 6,
       "username": "student80",
-      "password": "$2b$10$aASWzgpbPkNX7zqMboWlBep8bT26mdEmhkwylUbY/cC3OxVGWpNT6",
+      "password": "404040",
       "fullName": "Adel kocari",
       "role": "student"
     },
     {
       "id": 7,
       "username": "student66",
-      "password": "$2b$10$759l8AUj0/wS4mMbv.CbbuLy5PwBbAPx4wHLTHFj0NUH7Py3hmFri",
+      "password": "124",
       "fullName": "Mila fihs",
       "role": "teacher"
     }
@@ -262,7 +262,9 @@
         "q1": "4",
         "q2": "15",
         "q3": "6"
-      }
+      },
+      "feedback": "Excellent work!",
+      "manualGrade": null
     },
     {
       "id": 2,
@@ -277,7 +279,9 @@
         "q1": "4",
         "q2": "10",
         "q3": "6"
-      }
+      },
+      "feedback": null,
+      "manualGrade": null
     },
     {
       "id": 3,
@@ -293,7 +297,9 @@
         "q2": "warm",
         "q3": "childs",
         "q4": "She goes to school every day."
-      }
+      },
+      "feedback": "Pay attention to irregular plural nouns like child/children.",
+      "manualGrade": 55
     },
     {
       "id": 4,
@@ -309,7 +315,9 @@
         "q2": "cold",
         "q3": "children",
         "q4": "She goes to school every day."
-      }
+      },
+      "feedback": null,
+      "manualGrade": null
     },
     {
       "id": 5,
@@ -325,7 +333,9 @@
         "q2": "cold",
         "q3": "children",
         "q4": "She goes to school every day."
-      }
+      },
+      "feedback": null,
+      "manualGrade": null
     },
     {
       "id": 6,
@@ -340,7 +350,9 @@
         "q1": "4",
         "q2": "15",
         "q3": "6"
-      }
+      },
+      "feedback": null,
+      "manualGrade": null
     },
     {
       "id": 7,
@@ -355,7 +367,9 @@
         "q1": "Queue",
         "q2": "Hyper Text Markup Language",
         "q3": "#"
-      }
+      },
+      "feedback": null,
+      "manualGrade": null
     }
   ]
 }
