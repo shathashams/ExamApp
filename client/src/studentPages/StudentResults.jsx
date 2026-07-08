@@ -1,14 +1,146 @@
 // דף תוצאות לתלמיד
-// מציג את כל המבחנים שהתלמיד הגיש ואת הציונים שלו, ומאפשר לשלוח פידבק למורה
+// מציג את כל המבחנים שהתלמיד הגיש ואת הציונים שלו, ומאפשר לשלוח פידבק למורה ולראות פירוט תשובות
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { submitFeedback } from '../api/feedbackService'
+import { getAllExams } from '../api/examService'
+
+// קומפוננטת מודל המאפשרת לסטודנט לראות את תשובותיו מול התשובות הנכונות לאחר פרסום הציונים
+function StudentSubmissionReviewModal({ submission, examData, onClose }) {
+  const getFinalGrade = (sub) =>
+    sub.manualGrade !== null && sub.manualGrade !== undefined
+      ? sub.manualGrade
+      : sub.grade
+
+  return (
+    <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 1050 }}>
+      <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div className="modal-content shadow-lg">
+          <div className="modal-header bg-dark text-white p-3">
+            <h5 className="modal-title fw-bold">
+              Review Your Answers — {submission.examTitle}
+            </h5>
+            <button
+              type="button"
+              className="btn-close btn-close-white"
+              onClick={onClose}
+            ></button>
+          </div>
+          <div className="modal-body p-4 bg-light">
+            {/* מידע כללי על הציון */}
+            <div className="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2 pb-3 border-bottom border-secondary-subtle">
+              <div className="text-start">
+                <h6 className="text-muted mb-1 small text-uppercase fw-bold">Assessment Date</h6>
+                <h5 className="fw-bold mb-0">{submission.date || 'Completed'}</h5>
+              </div>
+              <div className="text-end">
+                <span className="fs-5 fw-bold me-3 text-primary">Your Grade: {getFinalGrade(submission)}%</span>
+                <span className="badge bg-primary px-3 py-2 rounded-pill">
+                  {submission.score} / {submission.totalQuestions} Correct
+                </span>
+              </div>
+            </div>
+
+            {/* מיפוי השאלות ותשובות התלמיד */}
+            {examData ? (
+              <div className="d-flex flex-column gap-3">
+                {examData.questions.map((q, idx) => {
+                  const studentAns = submission.answers ? submission.answers[q.id] || submission.answers[String(q.id)] : null
+                  const isOpenQ = q.type === 'open' || !q.options || q.options.length === 0 || (q.options.length === 1 && q.options[0] === '')
+                  const isCorrect = !isOpenQ && studentAns === q.answer
+
+                  let cardClass = 'border-danger-subtle bg-danger-subtle bg-opacity-10'
+                  let badgeClass = 'bg-danger'
+                  let statusText = 'Incorrect ✗'
+
+                  if (isOpenQ) {
+                    cardClass = 'border-info-subtle bg-info-subtle bg-opacity-10'
+                    badgeClass = 'bg-info text-dark'
+                    statusText = 'Open Text Question'
+                  } else if (isCorrect) {
+                    cardClass = 'border-success-subtle bg-success-subtle bg-opacity-10'
+                    badgeClass = 'bg-success'
+                    statusText = 'Correct ✓'
+                  }
+
+                  return (
+                    <div
+                      key={q.id || idx}
+                      className={`p-3 rounded border ${cardClass}`}
+                    >
+                      <div className="d-flex justify-content-between align-items-start gap-3 mb-2">
+                        <h6 className="fw-bold mb-0 text-start">
+                          Question {idx + 1}: {q.text}
+                        </h6>
+                        <span className={`badge ${badgeClass} px-2 py-1`}>
+                          {statusText}
+                        </span>
+                      </div>
+                      <div className="small text-start">
+                        <div className="mb-1">
+                          <strong>Your Answer: </strong>
+                          <span className={isOpenQ ? 'text-dark fw-normal' : (isCorrect ? 'text-success fw-bold' : 'text-danger fw-bold')}>
+                            {studentAns || '(No Answer)'}
+                          </span>
+                        </div>
+                        <div>
+                          <strong>{isOpenQ ? 'Reference Answer:' : 'Correct Answer:'} </strong>
+                          <span className="text-success fw-bold">{q.answer}</span>
+                        </div>
+                        {q.options && q.options.length > 0 && !isOpenQ && (
+                          <div className="text-muted mt-2 pt-2 border-top border-light-subtle">
+                            <strong>Options: </strong>
+                            {q.options.join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="alert alert-warning mb-0">
+                Could not retrieve exam questions from the database to map answers.
+              </div>
+            )}
+          </div>
+          <div className="modal-footer bg-light p-2">
+            <button
+              type="button"
+              className="btn btn-secondary px-4 fw-bold"
+              onClick={onClose}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function StudentResults({ results, feedbacks = [], onFeedbackSubmitted }) {
   const [activeFeedbackExamId, setActiveFeedbackExamId] = useState(null)
   const [feedbackMsg, setFeedbackMsg] = useState('')
   const [submittingFeedback, setSubmittingFeedback] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  
+  // שמירת רשימת מבחנים ותצוגת הגשה שנבחרה
+  const [exams, setExams] = useState([])
+  const [selectedSubmission, setSelectedSubmission] = useState(null)
+
+  // טעינת רשימת המבחנים לצורך תצוגת תשובות נכונות
+  useEffect(() => {
+    const fetchExams = async () => {
+      try {
+        const data = await getAllExams()
+        setExams(data)
+      } catch (err) {
+        console.error('Failed to load exams inside student results view:', err)
+      }
+    }
+    fetchExams()
+  }, [])
 
   // שליחת פידבק חדש לשרת
   const handleSendFeedback = async (examId, examTitle) => {
@@ -99,7 +231,7 @@ function StudentResults({ results, feedbacks = [], onFeedbackSubmitted }) {
                 key={result.id}
                 className="list-group-item p-3 mb-3 rounded border shadow-sm d-flex flex-column text-start"
               >
-                <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 w-100">
+                <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 w-100 border-bottom pb-2 mb-2">
                   <div className="d-flex align-items-center flex-wrap gap-3">
                     <div className="d-flex align-items-center gap-2">
                       <span className="fw-bold fs-5">{result.examTitle}</span>
@@ -127,6 +259,12 @@ function StudentResults({ results, feedbacks = [], onFeedbackSubmitted }) {
                   <div className="d-flex gap-3 text-muted small align-items-center">
                     <span>Score: <strong>{result.score}</strong> / {result.totalQuestions} Correct</span>
                     <span className="badge bg-light text-dark border">{result.date || 'Completed'}</span>
+                    <button
+                      className="btn btn-sm btn-outline-primary px-3 fw-bold shadow-sm"
+                      onClick={() => setSelectedSubmission(result)}
+                    >
+                      🔍 View Details
+                    </button>
                   </div>
                 </div>
 
@@ -205,6 +343,15 @@ function StudentResults({ results, feedbacks = [], onFeedbackSubmitted }) {
             )
           })}
         </div>
+
+        {/* מודל להצגת תשובות ועריכת הציון והמשוב של הסטודנט */}
+        {selectedSubmission && (
+          <StudentSubmissionReviewModal
+            submission={selectedSubmission}
+            examData={exams.find((e) => e.id === selectedSubmission.examId)}
+            onClose={() => setSelectedSubmission(null)}
+          />
+        )}
       </div>
     </div>
   )
