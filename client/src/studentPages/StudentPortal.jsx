@@ -22,9 +22,6 @@ function StudentPortal({ username, onSaveResult }) {
   // קובע אם המבחן כבר הוגש
   const [isSubmitted, setIsSubmitted] = useState(false)
 
-  // שומר את מספר התשובות הנכונות של התלמיד
-  const [score, setScore] = useState(0)
-
   // שומר את כל המבחנים הזמינים מהמאגר
   const [availableExams, setAvailableExams] = useState([])
 
@@ -69,7 +66,6 @@ function StudentPortal({ username, onSaveResult }) {
     setCurrentQuestionIndex(0)
     setSelectedAnswers({})
     setIsSubmitted(false)
-    setScore(0)
   }
 
   // יציאה מהמבחן וחזרה למסך ההתחלה של התלמיד
@@ -80,7 +76,6 @@ function StudentPortal({ username, onSaveResult }) {
     setCurrentQuestionIndex(0)
     setSelectedAnswers({})
     setIsSubmitted(false)
-    setScore(0)
   }
 
   // שמירת התשובה שנבחרה עבור שאלה מסוימת
@@ -118,7 +113,6 @@ function StudentPortal({ username, onSaveResult }) {
       (correctAnswers / exam.questions.length) * 100
     )
 
-    setScore(correctAnswers)
     setIsSubmitted(true)
 
     onSaveResult({
@@ -173,35 +167,31 @@ function StudentPortal({ username, onSaveResult }) {
   const progressPercent =
     ((currentQuestionIndex + 1) / exam.questions.length) * 100
 
-  // חישוב הציון באחוזים אחרי הגשת המבחן
-  const gradePercent = Math.round((score / exam.questions.length) * 100)
-
   // מסך תוצאה אחרי הגשת המבחן
   if (isSubmitted) {
     return (
       <div className="student-exam-page">
         <div className="card shadow-sm">
           <div className="card-body text-center p-5">
-            <h2 className="fw-bold mb-3">Exam Submitted ✅</h2>
+            <h2 className="fw-bold mb-3 text-success">Exam Submitted Successfully ✅</h2>
             <p className="text-muted mb-4">
-              Your answers were submitted successfully.
+              Your answers have been registered and saved in the system.
             </p>
 
-            {/* הצגת הציון הסופי של התלמיד */}
-            <div className="alert alert-primary">
-              <h4 className="mb-2">Your Score</h4>
-              <p className="mb-1">
-                Correct Answers: {score} / {exam.questions.length}
+            {/* הצגת הודעת המתנה לפרסום ציונים ע"י המורה */}
+            <div className="alert alert-info py-4 border-info-subtle shadow-sm">
+              <h4 className="alert-heading fw-bold mb-2">⏳ Grade Pending Review</h4>
+              <p className="mb-0 small">
+                The lecturer will review the submissions and publish the final marks. You will be able to view your score and written feedback under the <strong>Results</strong> page once published.
               </p>
-              <p className="mb-0">Grade: {gradePercent}%</p>
             </div>
 
             <div className="d-flex justify-content-center gap-2 mt-4">
               <button
-                className="btn btn-outline-secondary"
+                className="btn btn-outline-secondary px-4 fw-bold"
                 onClick={handleExitExam}
               >
-                Exit Exam
+                Exit Exam Portal
               </button>
             </div>
           </div>

@@ -67,7 +67,10 @@ class ScoreJsonService {
             totalQuestions: Number(totalQuestions),
             grade: Number(grade),
             date,
-            answers: typeof answers === 'string' ? JSON.parse(answers) : answers
+            answers: typeof answers === 'string' ? JSON.parse(answers) : answers,
+            feedback: null,
+            manualGrade: null,
+            isPublished: false
         }
 
         db.studentScores.push(newScore)
@@ -77,7 +80,7 @@ class ScoreJsonService {
     }
 
     // עדכון ציון ידני ומשוב - מוודא שהמבחן שייך למורה
-    async updateScore(id, { feedback, manualGrade }, teacherId) {
+    async updateScore(id, { feedback, manualGrade, isPublished }, teacherId) {
         const db = await readDb()
         db.studentScores = db.studentScores || []
         db.exams = db.exams || []
@@ -91,10 +94,13 @@ class ScoreJsonService {
             return null
         }
 
+        const publishVal = isPublished === undefined || isPublished === null ? true : isPublished
+
         const updatedScore = {
             ...score,
             feedback: feedback !== undefined ? feedback : score.feedback,
-            manualGrade: manualGrade !== undefined ? manualGrade : score.manualGrade
+            manualGrade: manualGrade !== undefined ? manualGrade : score.manualGrade,
+            isPublished: publishVal
         }
 
         db.studentScores[scoreIdx] = updatedScore

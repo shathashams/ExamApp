@@ -39,7 +39,8 @@ CREATE TABLE "studentScores" (
     "date" VARCHAR(50) NOT NULL,
     "answers" JSONB NOT NULL DEFAULT '{}'::jsonb,
     "feedback" TEXT,
-    "manualGrade" INTEGER
+    "manualGrade" INTEGER,
+    "isPublished" BOOLEAN DEFAULT FALSE
 );
 
 -- Seed Initial Data
@@ -63,14 +64,14 @@ INSERT INTO "exams" ("id", "title", "status", "duration", "extraTime", "allowedM
 
 SELECT setval('"exams_id_seq"', (SELECT MAX("id") FROM "exams"));
 
-INSERT INTO "studentScores" ("id", "studentName", "studentId", "examId", "examTitle", "score", "totalQuestions", "grade", "date", "answers") VALUES
-(1, 'Noor Ahmed', 3, 1, 'Math Exam', 3, 3, 100, '2026-06-02', '{"q1": "4", "q2": "15", "q3": "6"}'::jsonb),
-(2, 'Lina Mansour', 4, 1, 'Math Exam', 2, 3, 67, '2026-06-02', '{"q1": "4", "q2": "10", "q3": "6"}'::jsonb),
-(3, 'Adam Saleh', 5, 2, 'English Exam', 2, 4, 50, '2026-06-02', '{"q1": "am", "q2": "warm", "q3": "childs", "q4": "She goes to school every day."}'::jsonb),
-(4, 'Noor Ahmed', 3, 2, 'English Exam', 4, 4, 100, '2026-06-03', '{"q1": "am", "q2": "cold", "q3": "children", "q4": "She goes to school every day."}'::jsonb),
-(5, 'Lina Mansour', 4, 2, 'English Exam', 3, 4, 75, '2026-06-03', '{"q1": "is", "q2": "cold", "q3": "children", "q4": "She goes to school every day."}'::jsonb),
-(6, 'Adam Saleh', 5, 1, 'Math Exam', 3, 3, 100, '2026-06-04', '{"q1": "4", "q2": "15", "q3": "6"}'::jsonb),
-(7, 'Noor Ahmed', 3, 3, 'Computer Science Exam', 2, 3, 67, '2026-06-04', '{"q1": "Queue", "q2": "Hyper Text Markup Language", "q3": "#"}'::jsonb);
+INSERT INTO "studentScores" ("id", "studentName", "studentId", "examId", "examTitle", "score", "totalQuestions", "grade", "date", "answers", "isPublished") VALUES
+(1, 'Noor Ahmed', 3, 1, 'Math Exam', 3, 3, 100, '2026-06-02', '{"q1": "4", "q2": "15", "q3": "6"}'::jsonb, TRUE),
+(2, 'Lina Mansour', 4, 1, 'Math Exam', 2, 3, 67, '2026-06-02', '{"q1": "4", "q2": "10", "q3": "6"}'::jsonb, TRUE),
+(3, 'Adam Saleh', 5, 2, 'English Exam', 2, 4, 50, '2026-06-02', '{"q1": "am", "q2": "warm", "q3": "childs", "q4": "She goes to school every day."}'::jsonb, TRUE),
+(4, 'Noor Ahmed', 3, 2, 'English Exam', 4, 4, 100, '2026-06-03', '{"q1": "am", "q2": "cold", "q3": "children", "q4": "She goes to school every day."}'::jsonb, TRUE),
+(5, 'Lina Mansour', 4, 2, 'English Exam', 3, 4, 75, '2026-06-03', '{"q1": "is", "q2": "cold", "q3": "children", "q4": "She goes to school every day."}'::jsonb, TRUE),
+(6, 'Adam Saleh', 5, 1, 'Math Exam', 3, 3, 100, '2026-06-04', '{"q1": "4", "q2": "15", "q3": "6"}'::jsonb, TRUE),
+(7, 'Noor Ahmed', 3, 3, 'Computer Science Exam', 2, 3, 67, '2026-06-04', '{"q1": "Queue", "q2": "Hyper Text Markup Language", "q3": "#"}'::jsonb, TRUE);
 
 SELECT setval('"studentScores_id_seq"', (SELECT MAX("id") FROM "studentScores"));
 

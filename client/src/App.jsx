@@ -263,9 +263,10 @@ function App() {
         <StudentResults
           results={studentResults.filter(
             (result) =>
-              result.studentId === user.id ||
-              result.studentName === user.fullName ||
-              result.studentName === user.username
+              result.isPublished !== false &&
+              (result.studentId === user.id ||
+                result.studentName === user.fullName ||
+                result.studentName === user.username)
           )}
           feedbacks={feedbacks}
           onFeedbackSubmitted={handleFeedbackSubmitted}

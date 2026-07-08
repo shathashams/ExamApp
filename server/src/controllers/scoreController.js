@@ -86,11 +86,12 @@ class ScoreController {
                 throw err
             }
 
-            const { feedback, manualGrade } = req.body
+            const { feedback, manualGrade, isPublished } = req.body
 
             const updatedScore = await scoreService.updateScore(id, {
                 feedback,
-                manualGrade: manualGrade !== undefined && manualGrade !== '' && manualGrade !== null ? Number(manualGrade) : null
+                manualGrade: manualGrade !== undefined && manualGrade !== '' && manualGrade !== null ? Number(manualGrade) : null,
+                isPublished: isPublished !== undefined ? isPublished : null
             }, userId)
 
             if (!updatedScore) {
