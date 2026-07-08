@@ -40,7 +40,8 @@ CREATE TABLE "studentScores" (
     "answers" JSONB NOT NULL DEFAULT '{}'::jsonb,
     "feedback" TEXT,
     "manualGrade" INTEGER,
-    "isPublished" BOOLEAN DEFAULT FALSE
+    "isPublished" BOOLEAN DEFAULT FALSE,
+    "factor" INTEGER DEFAULT 0
 );
 
 -- Seed Initial Data

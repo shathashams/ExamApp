@@ -17,7 +17,8 @@ class ScoreService {
                 s.answers,
                 s.feedback,
                 s."manualGrade",
-                s."isPublished"
+                s."isPublished",
+                s.factor
             FROM "studentScores" s
             JOIN exams e ON s."examId" = e.id
             WHERE e."teacherId" = $1
@@ -42,7 +43,8 @@ class ScoreService {
                 answers,
                 feedback,
                 "manualGrade",
-                "isPublished"
+                "isPublished",
+                factor
             FROM "studentScores"
             WHERE "studentId" = $1
             ORDER BY id
@@ -66,7 +68,8 @@ class ScoreService {
                 s.answers,
                 s.feedback,
                 s."manualGrade",
-                s."isPublished"
+                s."isPublished",
+                s.factor
             FROM "studentScores" s
             JOIN exams e ON s."examId" = e.id
             WHERE s."examId" = $1 AND e."teacherId" = $2
@@ -75,7 +78,7 @@ class ScoreService {
         return result.rows
     }
 
-    // שמירת ציון חדש משויך לתלמיד ולמבחן (מצב ברירת מחדל לא מפורסם)
+    // שמירת ציון חדש משויך לתלמיד ולמבחן
     async saveScore({
         studentName,
         studentId,
@@ -98,9 +101,10 @@ class ScoreService {
                 grade,
                 date,
                 answers,
-                "isPublished"
+                "isPublished",
+                factor
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, FALSE)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, FALSE, 0)
             RETURNING *
         `, [
             studentName,
@@ -142,6 +146,48 @@ class ScoreService {
         `, [feedback, manualGrade, publishVal, Number(id)])
 
         return result.rows[0]
+    }
+
+    // פרסום כל הציונים עבור מבחן ספציפי בבת אחת
+    async publishAllScores(examId, teacherId) {
+        // נוודא שיש למורה הרשאה למבחן הזה
+        const examCheck = await pool.query(`
+            SELECT id FROM exams WHERE id = $1 AND "teacherId" = $2
+        `, [Number(examId), Number(teacherId)])
+
+        if (examCheck.rows.length === 0) {
+            throw new Error('Forbidden: You do not own this exam')
+        }
+
+        const result = await pool.query(`
+            UPDATE "studentScores"
+            SET "isPublished" = TRUE
+            WHERE "examId" = $1
+            RETURNING *
+        `, [Number(examId)])
+
+        return result.rows
+    }
+
+    // החלת פקטור (תוספת נקודות) לכל הסטודנטים במבחן ספציפי
+    async applyFactorToExam(examId, factor, teacherId) {
+        // נוודא שיש למורה הרשאה למבחן הזה
+        const examCheck = await pool.query(`
+            SELECT id FROM exams WHERE id = $1 AND "teacherId" = $2
+        `, [Number(examId), Number(teacherId)])
+
+        if (examCheck.rows.length === 0) {
+            throw new Error('Forbidden: You do not own this exam')
+        }
+
+        const result = await pool.query(`
+            UPDATE "studentScores"
+            SET factor = $1
+            WHERE "examId" = $2
+            RETURNING *
+        `, [Number(factor), Number(examId)])
+
+        return result.rows
     }
 }
 

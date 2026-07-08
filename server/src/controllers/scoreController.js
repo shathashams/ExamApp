@@ -105,6 +105,51 @@ class ScoreController {
             next(error)
         }
     }
+
+    // פרסום כל הציונים במבחן ספציפי
+    async publishAllScores(req, res, next) {
+        try {
+            const examId = Number(req.params.examId)
+            const { id: userId, role } = req.user
+
+            if (role !== 'teacher') {
+                const err = new Error('Forbidden: Only teachers can publish marks')
+                err.status = 403
+                throw err
+            }
+
+            const updatedScores = await scoreService.publishAllScores(examId, userId)
+            res.json(updatedScores)
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    // החלת פקטור למבחן ספציפי
+    async applyFactor(req, res, next) {
+        try {
+            const examId = Number(req.params.examId)
+            const { id: userId, role } = req.user
+            const { factor } = req.body
+
+            if (role !== 'teacher') {
+                const err = new Error('Forbidden: Only teachers can apply factor curves')
+                err.status = 403
+                throw err
+            }
+
+            if (factor === undefined || factor === null) {
+                const err = new Error('factor is required')
+                err.status = 400
+                throw err
+            }
+
+            const updatedScores = await scoreService.applyFactorToExam(examId, Number(factor), userId)
+            res.json(updatedScores)
+        } catch (error) {
+            next(error)
+        }
+    }
 }
 
 export default new ScoreController()

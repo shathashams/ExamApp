@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react'
 import { getAllExams } from '../api/examService'
-import { updateScore } from '../api/scoreService'
+import { updateScore, publishAllScores, applyFactor } from '../api/scoreService'
 
 // קומפוננטת מודל להצגת תשובות ועריכת הציון והמשוב של הסטודנט
 function SubmissionReviewModal({ submission, currentExamData, onSave, onClose }) {
@@ -220,11 +220,14 @@ function TeacherStudentResults({ results, onScoreUpdated }) {
   // המבחן שנבחר בפועל (במידה ולא נבחר כלום, ברירת המחדל היא הראשון ברשימה)
   const activeExam = selectedExam || examNames[0] || ''
 
-  // סינון התוצאות לפי המבחן שנבחר (מחשב את הציון הסופי עם העקפה הידנית)
-  const getFinalGrade = (result) =>
-    result.manualGrade !== null && result.manualGrade !== undefined
+  // סינון התוצאות לפי המבחן שנבחר (מחשב את הציון הסופי עם העקפה הידנית והפקטור)
+  const getFinalGrade = (result) => {
+    const base = result.manualGrade !== null && result.manualGrade !== undefined
       ? result.manualGrade
       : result.grade
+    const factor = result.factor || 0
+    return Math.min(100, base + factor)
+  }
 
   const filteredResults = results.filter(
     (result) => result.examTitle === activeExam
@@ -261,6 +264,73 @@ function TeacherStudentResults({ results, onScoreUpdated }) {
       }
     } catch (err) {
       console.error('Failed to toggle publish status:', err)
+    }
+  }
+
+  const [factorVal, setFactorVal] = useState(() => {
+    const defaultExam = examNames[0] || ''
+    const examFilter = results.filter(r => r.examTitle === defaultExam)
+    return examFilter.length > 0 ? String(examFilter[0].factor || 0) : '0'
+  })
+  const [bulkSuccess, setBulkSuccess] = useState('')
+  const [bulkError, setBulkError] = useState('')
+  const [processingBulk, setProcessingBulk] = useState(false)
+
+  const handlePublishAll = async () => {
+    if (filteredResults.length === 0) {
+      setBulkError('No student submissions found to publish.')
+      return
+    }
+
+    const examId = filteredResults[0].examId
+    if (!examId) return
+
+    setProcessingBulk(true)
+    setBulkError('')
+    setBulkSuccess('')
+    try {
+      const updatedList = await publishAllScores(examId)
+      setBulkSuccess('All grades for this exam have been successfully published!')
+      if (onScoreUpdated) {
+        updatedList.forEach(score => onScoreUpdated(score))
+      }
+    } catch (err) {
+      console.error(err)
+      setBulkError('Failed to publish all grades. Please try again.')
+    } finally {
+      setProcessingBulk(false)
+    }
+  }
+
+  const handleApplyFactor = async () => {
+    if (filteredResults.length === 0) {
+      setBulkError('No student submissions found to apply factor to.')
+      return
+    }
+
+    const examId = filteredResults[0].examId
+    if (!examId) return
+
+    const factorNum = Number(factorVal)
+    if (isNaN(factorNum)) {
+      setBulkError('Please enter a valid number for the factor.')
+      return
+    }
+
+    setProcessingBulk(true)
+    setBulkError('')
+    setBulkSuccess('')
+    try {
+      const updatedList = await applyFactor(examId, factorNum)
+      setBulkSuccess(`Factor of +${factorNum} points successfully applied to all grades!`)
+      if (onScoreUpdated) {
+        updatedList.forEach(score => onScoreUpdated(score))
+      }
+    } catch (err) {
+      console.error(err)
+      setBulkError('Failed to apply factor. Please try again.')
+    } finally {
+      setProcessingBulk(false)
     }
   }
 
@@ -340,7 +410,14 @@ function TeacherStudentResults({ results, onScoreUpdated }) {
           <select
             className="form-select"
             value={activeExam}
-            onChange={(e) => setSelectedExam(e.target.value)}
+            onChange={(e) => {
+              const nextExam = e.target.value
+              setSelectedExam(nextExam)
+              const examFilter = results.filter(r => r.examTitle === nextExam)
+              setFactorVal(examFilter.length > 0 ? String(examFilter[0].factor || 0) : '0')
+              setBulkSuccess('')
+              setBulkError('')
+            }}
           >
             {examNames.map((examName) => (
               <option key={examName} value={examName}>
@@ -349,6 +426,73 @@ function TeacherStudentResults({ results, onScoreUpdated }) {
             ))}
           </select>
         </div>
+
+        {/* כלי ניהול ציונים מרוכזים (פרסום והחלת פקטור) */}
+        {filteredResults.length > 0 && (
+          <div className="card mb-4 border-light-subtle shadow-sm bg-light">
+            <div className="card-body p-3">
+              <h6 className="fw-bold mb-3 text-secondary text-start text-uppercase small" style={{ letterSpacing: '0.5px' }}>
+                🔧 Exam Grade Management Tools
+              </h6>
+              <div className="row g-3 align-items-end">
+                {/* עמודת פרסום כללי */}
+                <div className="col-md-5 text-start">
+                  <label className="form-label fw-semibold small text-muted">Grade Release</label>
+                  <div>
+                    <button
+                      className="btn btn-success fw-bold w-100 shadow-sm"
+                      onClick={handlePublishAll}
+                      disabled={processingBulk}
+                    >
+                      📢 Publish All Marks
+                    </button>
+                  </div>
+                </div>
+
+                {/* מחיצה דקורטיבית */}
+                <div className="col-md-1 d-none d-md-block text-center text-muted fw-light">
+                  |
+                </div>
+
+                {/* עמודת החלת פקטור */}
+                <div className="col-md-6 text-start">
+                  <label className="form-label fw-semibold small text-muted" htmlFor="factorInputField">
+                    Apply Factor Curve (Points)
+                  </label>
+                  <div className="input-group">
+                    <input
+                      id="factorInputField"
+                      type="number"
+                      className="form-control"
+                      placeholder="e.g. +5 or -5"
+                      value={factorVal}
+                      onChange={(e) => setFactorVal(e.target.value)}
+                    />
+                    <button
+                      className="btn btn-primary fw-bold px-4"
+                      onClick={handleApplyFactor}
+                      disabled={processingBulk}
+                    >
+                      Apply Factor
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* הודעות הצלחה או שגיאה של פעולות Bulk */}
+              {bulkSuccess && (
+                <div className="alert alert-success mt-3 mb-0 py-2 px-3 small text-start shadow-sm border-success-subtle">
+                  🎉 {bulkSuccess}
+                </div>
+              )}
+              {bulkError && (
+                <div className="alert alert-danger mt-3 mb-0 py-2 px-3 small text-start shadow-sm border-danger-subtle">
+                  ⚠️ {bulkError}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* כרטיסים עם מידע כללי */}
         <div className="row mb-4">
@@ -413,6 +557,16 @@ function TeacherStudentResults({ results, onScoreUpdated }) {
                     {hasOverride && (
                       <span className="badge bg-info text-dark ms-2" style={{ fontSize: '0.7rem' }}>
                         Overridden
+                      </span>
+                    )}
+                    {result.factor > 0 && (
+                      <span className="badge bg-primary text-white ms-2" style={{ fontSize: '0.7rem' }}>
+                        +{result.factor} Factor
+                      </span>
+                    )}
+                    {result.factor < 0 && (
+                      <span className="badge bg-danger text-white ms-2" style={{ fontSize: '0.7rem' }}>
+                        {result.factor} Factor
                       </span>
                     )}
                   </td>
