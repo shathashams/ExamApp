@@ -13,6 +13,7 @@ function SubmissionReviewModal({ submission, currentExamData, onSave, onClose })
       : ''
   )
   const [feedbackVal, setFeedbackVal] = useState(submission.feedback || '')
+  const [isPublishedVal, setIsPublishedVal] = useState(submission.isPublished !== false)
   const [savingGrading, setSavingGrading] = useState(false)
   const [gradingError, setGradingError] = useState('')
   const [gradingSuccess, setGradingSuccess] = useState(false)
@@ -25,6 +26,7 @@ function SubmissionReviewModal({ submission, currentExamData, onSave, onClose })
       await onSave({
         feedback: feedbackVal,
         manualGrade: manualGradeVal !== '' ? Number(manualGradeVal) : null,
+        isPublished: isPublishedVal,
       })
       setGradingSuccess(true)
       setTimeout(() => setGradingSuccess(false), 3000)
@@ -87,6 +89,20 @@ function SubmissionReviewModal({ submission, currentExamData, onSave, onClose })
                       value={feedbackVal}
                       onChange={(e) => setFeedbackVal(e.target.value)}
                     ></textarea>
+                    
+                    <div className="form-check form-switch mt-2">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        role="switch"
+                        id="publishGradeSwitch"
+                        checked={isPublishedVal}
+                        onChange={(e) => setIsPublishedVal(e.target.checked)}
+                      />
+                      <label className="form-check-label fw-semibold small text-dark" htmlFor="publishGradeSwitch">
+                        Publish Grade & Feedback to Student Portal
+                      </label>
+                    </div>
                   </div>
                 </div>
                 <div className="text-end">
@@ -233,6 +249,21 @@ function TeacherStudentResults({ results, onScoreUpdated }) {
     fetchExams()
   }, [])
 
+  const handleTogglePublish = async (result) => {
+    try {
+      const updated = await updateScore(result.id, {
+        feedback: result.feedback,
+        manualGrade: result.manualGrade,
+        isPublished: result.isPublished === false
+      })
+      if (onScoreUpdated) {
+        onScoreUpdated(updated)
+      }
+    } catch (err) {
+      console.error('Failed to toggle publish status:', err)
+    }
+  }
+
   // מיון הציונים מהגבוה לנמוך כדי ליצור גרף כמו התפלגות ציונים (ציון סופי)
   const sortedGrades = filteredResults
     .map((result) => getFinalGrade(result))
@@ -360,6 +391,7 @@ function TeacherStudentResults({ results, onScoreUpdated }) {
               <th>Correct Answers</th>
               <th>Total Questions</th>
               <th>Final Grade</th>
+              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -368,6 +400,7 @@ function TeacherStudentResults({ results, onScoreUpdated }) {
             {filteredResults.map((result) => {
               const finalGrade = getFinalGrade(result)
               const hasOverride = result.manualGrade !== null && result.manualGrade !== undefined
+              const isPublished = result.isPublished !== false
 
               return (
                 <tr key={result.id}>
@@ -384,12 +417,24 @@ function TeacherStudentResults({ results, onScoreUpdated }) {
                     )}
                   </td>
                   <td>
+                    <span className={`badge ${isPublished ? 'bg-success' : 'bg-warning text-dark'}`}>
+                      {isPublished ? 'Published' : 'Unpublished'}
+                    </span>
+                  </td>
+                  <td>
                     <button
                       type="button"
                       className="btn btn-sm btn-outline-primary"
                       onClick={() => setSelectedSubmission(result)}
                     >
                       View & Grade
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn btn-sm ms-2 ${isPublished ? 'btn-outline-warning' : 'btn-outline-success'}`}
+                      onClick={() => handleTogglePublish(result)}
+                    >
+                      {isPublished ? 'Unpublish' : 'Publish'}
                     </button>
                   </td>
                 </tr>

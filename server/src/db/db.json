@@ -264,7 +264,8 @@
         "q3": "6"
       },
       "feedback": "Excellent work!",
-      "manualGrade": null
+      "manualGrade": null,
+      "isPublished": true
     },
     {
       "id": 2,
@@ -281,7 +282,8 @@
         "q3": "6"
       },
       "feedback": null,
-      "manualGrade": null
+      "manualGrade": null,
+      "isPublished": true
     },
     {
       "id": 3,
@@ -299,7 +301,8 @@
         "q4": "She goes to school every day."
       },
       "feedback": "Pay attention to irregular plural nouns like child/children.",
-      "manualGrade": 55
+      "manualGrade": 55,
+      "isPublished": true
     },
     {
       "id": 4,
@@ -317,7 +320,8 @@
         "q4": "She goes to school every day."
       },
       "feedback": null,
-      "manualGrade": null
+      "manualGrade": null,
+      "isPublished": true
     },
     {
       "id": 5,
@@ -335,7 +339,8 @@
         "q4": "She goes to school every day."
       },
       "feedback": null,
-      "manualGrade": null
+      "manualGrade": null,
+      "isPublished": true
     },
     {
       "id": 6,
@@ -352,7 +357,8 @@
         "q3": "6"
       },
       "feedback": null,
-      "manualGrade": null
+      "manualGrade": null,
+      "isPublished": true
     },
     {
       "id": 7,
@@ -369,7 +375,8 @@
         "q3": "#"
       },
       "feedback": null,
-      "manualGrade": null
+      "manualGrade": null,
+      "isPublished": true
     }
   ],
   "studentFeedbacks": [

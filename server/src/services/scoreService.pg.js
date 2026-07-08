@@ -16,7 +16,8 @@ class ScoreService {
                 s.date,
                 s.answers,
                 s.feedback,
-                s."manualGrade"
+                s."manualGrade",
+                s."isPublished"
             FROM "studentScores" s
             JOIN exams e ON s."examId" = e.id
             WHERE e."teacherId" = $1
@@ -40,7 +41,8 @@ class ScoreService {
                 date,
                 answers,
                 feedback,
-                "manualGrade"
+                "manualGrade",
+                "isPublished"
             FROM "studentScores"
             WHERE "studentId" = $1
             ORDER BY id
@@ -63,7 +65,8 @@ class ScoreService {
                 s.date,
                 s.answers,
                 s.feedback,
-                s."manualGrade"
+                s."manualGrade",
+                s."isPublished"
             FROM "studentScores" s
             JOIN exams e ON s."examId" = e.id
             WHERE s."examId" = $1 AND e."teacherId" = $2
@@ -72,7 +75,7 @@ class ScoreService {
         return result.rows
     }
 
-    // שמירת ציון חדש משויך לתלמיד ולמבחן
+    // שמירת ציון חדש משויך לתלמיד ולמבחן (מצב ברירת מחדל לא מפורסם)
     async saveScore({
         studentName,
         studentId,
@@ -94,9 +97,10 @@ class ScoreService {
                 "totalQuestions",
                 grade,
                 date,
-                answers
+                answers,
+                "isPublished"
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, FALSE)
             RETURNING *
         `, [
             studentName,
@@ -112,8 +116,8 @@ class ScoreService {
         return result.rows[0]
     }
 
-    // עדכון ציון ידני ומשוב - מוודא שהמבחן שייך למורה
-    async updateScore(id, { feedback, manualGrade }, teacherId) {
+    // עדכון ציון ידני, משוב ופרסום - מוודא שהמבחן שייך למורה
+    async updateScore(id, { feedback, manualGrade, isPublished }, teacherId) {
         const checkResult = await pool.query(`
             SELECT s.id 
             FROM "studentScores" s
@@ -125,14 +129,17 @@ class ScoreService {
             return null
         }
 
+        const publishVal = isPublished === undefined || isPublished === null ? true : isPublished;
+
         const result = await pool.query(`
             UPDATE "studentScores"
             SET 
                 feedback = $1,
-                "manualGrade" = $2
-            WHERE id = $3
+                "manualGrade" = $2,
+                "isPublished" = $3
+            WHERE id = $4
             RETURNING *
-        `, [feedback, manualGrade, Number(id)])
+        `, [feedback, manualGrade, publishVal, Number(id)])
 
         return result.rows[0]
     }
