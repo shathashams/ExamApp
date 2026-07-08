@@ -12,6 +12,7 @@ class ScoreJsonService {
 
         return scores
             .filter(s => teacherExamIds.has(s.examId))
+            .map(s => ({ ...s, factor: s.factor || 0 }))
             .sort((a, b) => a.id - b.id)
     }
 
@@ -22,6 +23,7 @@ class ScoreJsonService {
 
         return scores
             .filter(s => s.studentId === Number(studentId))
+            .map(s => ({ ...s, factor: s.factor || 0 }))
             .sort((a, b) => a.id - b.id)
     }
 
@@ -38,6 +40,7 @@ class ScoreJsonService {
 
         return scores
             .filter(s => s.examId === Number(examId))
+            .map(s => ({ ...s, factor: s.factor || 0 }))
             .sort((a, b) => a.id - b.id)
     }
 
@@ -70,7 +73,8 @@ class ScoreJsonService {
             answers: typeof answers === 'string' ? JSON.parse(answers) : answers,
             feedback: null,
             manualGrade: null,
-            isPublished: false
+            isPublished: false,
+            factor: 0
         }
 
         db.studentScores.push(newScore)
@@ -107,6 +111,56 @@ class ScoreJsonService {
         await writeDb(db)
 
         return updatedScore
+    }
+
+    // פרסום כל הציונים עבור מבחן ספציפי בבת אחת
+    async publishAllScores(examId, teacherId) {
+        const db = await readDb()
+        db.studentScores = db.studentScores || []
+        db.exams = db.exams || []
+
+        const exam = db.exams.find(e => e.id === Number(examId))
+        if (!exam || exam.teacherId !== Number(teacherId)) {
+            throw new Error('Forbidden: You do not own this exam')
+        }
+
+        const updatedList = []
+        db.studentScores = db.studentScores.map(s => {
+            if (s.examId === Number(examId)) {
+                const updated = { ...s, isPublished: true }
+                updatedList.push(updated)
+                return updated
+            }
+            return s
+        })
+
+        await writeDb(db)
+        return updatedList
+    }
+
+    // החלת פקטור (תוספת נקודות) לכל הסטודנטים במבחן ספציפי
+    async applyFactorToExam(examId, factor, teacherId) {
+        const db = await readDb()
+        db.studentScores = db.studentScores || []
+        db.exams = db.exams || []
+
+        const exam = db.exams.find(e => e.id === Number(examId))
+        if (!exam || exam.teacherId !== Number(teacherId)) {
+            throw new Error('Forbidden: You do not own this exam')
+        }
+
+        const updatedList = []
+        db.studentScores = db.studentScores.map(s => {
+            if (s.examId === Number(examId)) {
+                const updated = { ...s, factor: Number(factor) }
+                updatedList.push(updated)
+                return updated
+            }
+            return s
+        })
+
+        await writeDb(db)
+        return updatedList
     }
 }
 

@@ -87,3 +87,42 @@ export const updateScore = async (id, scoreData) => {
   }
   return null
 }
+
+export const publishAllScores = async (examId) => {
+  if (isServerMode()) {
+    const response = await fetch(`${ConfigService.getApiBaseUrl()}/scores/exam/${examId}/publish-all`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    })
+    if (!response.ok) throw new Error('Failed to publish all scores on server')
+    return response.json()
+  }
+
+  // FULLCLIENT mode: update mockScores
+  mockScores.forEach(s => {
+    if (s.examId === Number(examId)) {
+      s.isPublished = true
+    }
+  })
+  return mockScores.filter(s => s.examId === Number(examId))
+}
+
+export const applyFactor = async (examId, factor) => {
+  if (isServerMode()) {
+    const response = await fetch(`${ConfigService.getApiBaseUrl()}/scores/exam/${examId}/factor`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ factor: Number(factor) }),
+    })
+    if (!response.ok) throw new Error('Failed to apply factor on server')
+    return response.json()
+  }
+
+  // FULLCLIENT mode: update mockScores
+  mockScores.forEach(s => {
+    if (s.examId === Number(examId)) {
+      s.factor = Number(factor)
+    }
+  })
+  return mockScores.filter(s => s.examId === Number(examId))
+}

@@ -19,4 +19,10 @@ router.post('/', scoreController.saveScore)
 // עדכון ציון והוספת משוב (מורים בלבד)
 router.put('/:id', scoreController.updateScore)
 
+// פרסום כל הציונים במבחן (מורים בלבד)
+router.post('/exam/:examId/publish-all', scoreController.publishAllScores)
+
+// החלת פקטור למבחן (מורים בלבד)
+router.post('/exam/:examId/factor', scoreController.applyFactor)
+
 export default router

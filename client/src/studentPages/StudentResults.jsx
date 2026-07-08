@@ -7,10 +7,12 @@ import { getAllExams } from '../api/examService'
 
 // קומפוננטת מודל המאפשרת לסטודנט לראות את תשובותיו מול התשובות הנכונות לאחר פרסום הציונים
 function StudentSubmissionReviewModal({ submission, examData, onClose }) {
-  const getFinalGrade = (sub) =>
-    sub.manualGrade !== null && sub.manualGrade !== undefined
+  const getFinalGrade = (sub) => {
+    const base = sub.manualGrade !== null && sub.manualGrade !== undefined
       ? sub.manualGrade
       : sub.grade
+    return Math.min(100, base + (sub.factor || 0))
+  }
 
   return (
     <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 1050 }}>
@@ -183,11 +185,13 @@ function StudentResults({ results, feedbacks = [], onFeedbackSubmitted }) {
     )
   }
 
-  // עזר לקבלת הציון הסופי (ידני אם קיים, אחרת הממוחשב)
-  const getFinalGrade = (result) =>
-    result.manualGrade !== null && result.manualGrade !== undefined
+  // עזר לקבלת הציון הסופי (ידני אם קיים, אחרת הממוחשב) בתוספת פקטור
+  const getFinalGrade = (result) => {
+    const base = result.manualGrade !== null && result.manualGrade !== undefined
       ? result.manualGrade
       : result.grade
+    return Math.min(100, base + (result.factor || 0))
+  }
 
   // חישוב הממוצע של כל המבחנים שהוגשו
   const totalGrades = results.reduce((sum, r) => sum + getFinalGrade(r), 0)
