@@ -254,20 +254,33 @@ function StudentPortal({ username, onSaveResult }) {
           </div>
 
           <div className="answer-options">
-            {currentQuestion.options.map((option) => (
-              <button
-                key={option}
-                type="button"
-                className={`answer-option ${selectedAnswers[currentQuestion.id] === option
-                  ? 'answer-option-selected'
-                  : ''
-                  }`}
-                onClick={() => handleSelectAnswer(currentQuestion.id, option)}
-              >
-                <span className="answer-circle"></span>
-                {option}
-              </button>
-            ))}
+            {currentQuestion.options && currentQuestion.options.length > 0 && currentQuestion.type !== 'open' ? (
+              currentQuestion.options.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  className={`answer-option ${selectedAnswers[currentQuestion.id] === option
+                    ? 'answer-option-selected'
+                    : ''
+                    }`}
+                  onClick={() => handleSelectAnswer(currentQuestion.id, option)}
+                >
+                  <span className="answer-circle"></span>
+                  {option}
+                </button>
+              ))
+            ) : (
+              <div className="text-start">
+                <label className="form-label fw-semibold small text-muted">Write your answer below:</label>
+                <textarea
+                  className="form-control"
+                  rows="4"
+                  placeholder="Enter your open text answer here..."
+                  value={selectedAnswers[currentQuestion.id] || ''}
+                  onChange={(e) => handleSelectAnswer(currentQuestion.id, e.target.value)}
+                ></textarea>
+              </div>
+            )}
           </div>
         </div>
       </div>

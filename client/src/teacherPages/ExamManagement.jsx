@@ -55,8 +55,10 @@ function ExamManagement({ exam, onBack }) {
     )
   }
 
-  const openQuestions = 0
-  const closedQuestions = localExam.questions.length
+  const openQuestions = localExam.questions.filter(
+    (q) => !q.options || q.options.length === 0 || (q.options.length === 1 && q.options[0] === '')
+  ).length
+  const closedQuestions = localExam.questions.length - openQuestions
 
   // פתיחת טופס עריכת שאלה עם הערכים הקיימים שלה
   const startEditQuestion = (question) => {

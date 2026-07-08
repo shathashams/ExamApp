@@ -16,12 +16,13 @@ function CreateExam({ onExamCreated }) {
   )
   const [message, setMessage] = useState('')
 
-  // שמירת רשימת השאלות של המבחן החדש
+  // שמירת רשימת השאלות של המבחן החדש (תומך בסוגי שאלות סגורות/פתוחות)
   const [questions, setQuestions] = useState([
     {
       text: '',
       options: '',
       answer: '',
+      type: 'closed',
     },
   ])
 
@@ -40,11 +41,12 @@ function CreateExam({ onExamCreated }) {
         text: '',
         options: '',
         answer: '',
+        type: 'closed',
       },
     ])
   }
 
-  // מחיקת שאלה מהטופס
+  // הסרת שאלה מהטופס
   const handleRemoveQuestion = (index) => {
     if (questions.length === 1) {
       setMessage('Exam must have at least one question.')
@@ -56,7 +58,6 @@ function CreateExam({ onExamCreated }) {
   }
 
   // שמירת המבחן החדש במאגר המדומה
-  // כאן נשים Breakpoint בזמן סרטון הדיבאג
   const handleSaveExam = async () => {
     if (!examTitle.trim()) {
       setMessage('Please enter exam title.')
@@ -66,7 +67,7 @@ function CreateExam({ onExamCreated }) {
     const hasEmptyQuestion = questions.some(
       (question) =>
         !question.text.trim() ||
-        !question.options.trim() ||
+        ((question.type || 'closed') === 'closed' && !question.options.trim()) ||
         !question.answer.trim()
     )
 
@@ -85,7 +86,10 @@ function CreateExam({ onExamCreated }) {
       questions: questions.map((question, index) => ({
         id: index + 1,
         text: question.text,
-        options: question.options.split(',').map((option) => option.trim()),
+        type: question.type || 'closed',
+        options: (question.type || 'closed') === 'closed'
+          ? question.options.split(',').map((option) => option.trim())
+          : [],
         answer: question.answer,
       })),
     }
@@ -105,6 +109,7 @@ function CreateExam({ onExamCreated }) {
         text: '',
         options: '',
         answer: '',
+        type: 'closed',
       },
     ])
 
@@ -121,14 +126,14 @@ function CreateExam({ onExamCreated }) {
         <h2 className="mb-3">Create New Exam</h2>
         <p className="text-muted">
           The teacher can create a new exam with several questions and save it
-          in the mock database.
+          in the database.
         </p>
 
         {message && <div className="alert alert-info">{message}</div>}
 
-        <div className="row mb-3">
+        <div className="row mb-3 text-start">
           <div className="col-md-4">
-            <label className="form-label">Exam Title</label>
+            <label className="form-label fw-semibold">Exam Title</label>
             <input
               className="form-control"
               placeholder="Example: History Exam"
@@ -138,7 +143,7 @@ function CreateExam({ onExamCreated }) {
           </div>
 
           <div className="col-md-2">
-            <label className="form-label">Status</label>
+            <label className="form-label fw-semibold">Status</label>
             <select
               className="form-select"
               value={status}
@@ -150,7 +155,7 @@ function CreateExam({ onExamCreated }) {
           </div>
 
           <div className="col-md-3">
-            <label className="form-label">Duration Minutes</label>
+            <label className="form-label fw-semibold">Duration Minutes</label>
             <input
               type="number"
               className="form-control"
@@ -160,7 +165,7 @@ function CreateExam({ onExamCreated }) {
           </div>
 
           <div className="col-md-3">
-            <label className="form-label">Extra Time Minutes</label>
+            <label className="form-label fw-semibold">Extra Time Minutes</label>
             <input
               type="number"
               className="form-control"
@@ -170,9 +175,9 @@ function CreateExam({ onExamCreated }) {
           </div>
         </div>
 
-        <div className="row mb-3">
+        <div className="row mb-3 text-start">
           <div className="col-md-6">
-            <label className="form-label">Allowed Materials</label>
+            <label className="form-label fw-semibold">Allowed Materials</label>
             <input
               className="form-control"
               placeholder="Notes, calculator..."
@@ -182,7 +187,7 @@ function CreateExam({ onExamCreated }) {
           </div>
 
           <div className="col-md-6">
-            <label className="form-label">Teacher Availability</label>
+            <label className="form-label fw-semibold">Teacher Availability</label>
             <input
               className="form-control"
               placeholder="Example: First 20 minutes of the exam"
@@ -195,7 +200,7 @@ function CreateExam({ onExamCreated }) {
         <hr />
 
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h4 className="mb-0">Exam Questions</h4>
+          <h4 className="mb-0 fw-bold">Exam Questions</h4>
 
           <button className="btn btn-outline-primary" onClick={handleAddQuestion}>
             Add Question
@@ -203,10 +208,10 @@ function CreateExam({ onExamCreated }) {
         </div>
 
         {questions.map((question, index) => (
-          <div className="card mb-3" key={index}>
+          <div className="card mb-3 border-light shadow-sm" key={index}>
             <div className="card-body">
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="mb-0">Question {index + 1}</h5>
+              <div className="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                <h5 className="mb-0 fw-bold text-primary">Question {index + 1}</h5>
 
                 <button
                   className="btn btn-outline-danger btn-sm"
@@ -216,8 +221,22 @@ function CreateExam({ onExamCreated }) {
                 </button>
               </div>
 
-              <div className="mb-3">
-                <label className="form-label">Question Text</label>
+              <div className="mb-3 text-start">
+                <label className="form-label fw-semibold small text-muted">Question Type</label>
+                <select
+                  className="form-select form-select-sm"
+                  value={question.type || 'closed'}
+                  onChange={(e) =>
+                    handleQuestionChange(index, 'type', e.target.value)
+                  }
+                >
+                  <option value="closed">Multiple Choice (Closed Question)</option>
+                  <option value="open">Open Text Question</option>
+                </select>
+              </div>
+
+              <div className="mb-3 text-start">
+                <label className="form-label fw-semibold">Question Text</label>
                 <input
                   className="form-control"
                   placeholder="Enter question text"
@@ -228,24 +247,34 @@ function CreateExam({ onExamCreated }) {
                 />
               </div>
 
-              <div className="mb-3">
-                <label className="form-label">Answer Options</label>
-                <input
-                  className="form-control"
-                  placeholder="Write options separated by commas"
-                  value={question.options}
-                  onChange={(e) =>
-                    handleQuestionChange(index, 'options', e.target.value)
-                  }
-                />
-                <small className="text-muted">Example: 3, 4, 5, 6</small>
-              </div>
+              {(question.type || 'closed') === 'closed' ? (
+                <div className="mb-3 text-start">
+                  <label className="form-label fw-semibold">Answer Options</label>
+                  <input
+                    className="form-control"
+                    placeholder="Write options separated by commas"
+                    value={question.options}
+                    onChange={(e) =>
+                      handleQuestionChange(index, 'options', e.target.value)
+                    }
+                  />
+                  <small className="text-muted">Example: 3, 4, 5, 6</small>
+                </div>
+              ) : null}
 
-              <div className="mb-3">
-                <label className="form-label">Correct Answer</label>
+              <div className="mb-3 text-start">
+                <label className="form-label fw-semibold">
+                  {(question.type || 'closed') === 'closed'
+                    ? 'Correct Answer'
+                    : 'Reference / Sample Answer'}
+                </label>
                 <input
                   className="form-control"
-                  placeholder="Enter correct answer"
+                  placeholder={
+                    (question.type || 'closed') === 'closed'
+                      ? 'Enter correct answer'
+                      : 'Enter reference answer / keywords'
+                  }
                   value={question.answer}
                   onChange={(e) =>
                     handleQuestionChange(index, 'answer', e.target.value)
@@ -256,9 +285,11 @@ function CreateExam({ onExamCreated }) {
           </div>
         ))}
 
-        <button className="btn btn-success" onClick={handleSaveExam}>
-          Save Exam
-        </button>
+        <div className="text-end mt-4">
+          <button className="btn btn-success px-5 fw-bold" onClick={handleSaveExam}>
+            Save Exam
+          </button>
+        </div>
       </div>
     </div>
   )
