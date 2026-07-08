@@ -73,6 +73,37 @@ class ScoreController {
             next(error)
         }
     }
+
+    // עדכון ציון והוספת משוב ע"י המורה
+    async updateScore(req, res, next) {
+        try {
+            const id = Number(req.params.id)
+            const { id: userId, role } = req.user
+
+            if (role !== 'teacher') {
+                const err = new Error('Forbidden: Only teachers can update grades and give feedback')
+                err.status = 403
+                throw err
+            }
+
+            const { feedback, manualGrade } = req.body
+
+            const updatedScore = await scoreService.updateScore(id, {
+                feedback,
+                manualGrade: manualGrade !== undefined && manualGrade !== '' && manualGrade !== null ? Number(manualGrade) : null
+            }, userId)
+
+            if (!updatedScore) {
+                const err = new Error('Score record not found or unauthorized')
+                err.status = 404
+                throw err
+            }
+
+            res.json(updatedScore)
+        } catch (error) {
+            next(error)
+        }
+    }
 }
 
 export default new ScoreController()

@@ -105,6 +105,31 @@ class ScoreService {
         ])
         return result.rows[0]
     }
+
+    // עדכון ציון ידני ומשוב - מוודא שהמבחן שייך למורה
+    async updateScore(id, { feedback, manualGrade }, teacherId) {
+        const checkResult = await pool.query(`
+            SELECT s.id 
+            FROM "studentScores" s
+            JOIN exams e ON s."examId" = e.id
+            WHERE s.id = $1 AND e."teacherId" = $2
+        `, [Number(id), Number(teacherId)])
+
+        if (checkResult.rows.length === 0) {
+            return null
+        }
+
+        const result = await pool.query(`
+            UPDATE "studentScores"
+            SET 
+                feedback = $1,
+                "manualGrade" = $2
+            WHERE id = $3
+            RETURNING *
+        `, [feedback, manualGrade, Number(id)])
+
+        return result.rows[0]
+    }
 }
 
 export default new ScoreService()

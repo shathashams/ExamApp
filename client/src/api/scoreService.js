@@ -61,3 +61,27 @@ export const saveScore = async (scoreData, userId, userRole, username) => {
   mockScores.push(newScore)
   return newScore
 }
+
+export const updateScore = async (id, scoreData) => {
+  if (isServerMode()) {
+    const response = await fetch(`${ConfigService.getApiBaseUrl()}/scores/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(scoreData),
+    })
+    if (!response.ok) throw new Error('Failed to update score on server')
+    return response.json()
+  }
+
+  // FULLCLIENT: שמירה מקומית בלבד
+  const scoreIndex = mockScores.findIndex((s) => s.id === Number(id))
+  if (scoreIndex !== -1) {
+    mockScores[scoreIndex] = {
+      ...mockScores[scoreIndex],
+      feedback: scoreData.feedback,
+      manualGrade: scoreData.manualGrade !== undefined && scoreData.manualGrade !== null && scoreData.manualGrade !== '' ? Number(scoreData.manualGrade) : null
+    }
+    return mockScores[scoreIndex]
+  }
+  return null
+}

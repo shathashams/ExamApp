@@ -167,7 +167,14 @@ function App() {
 
       {/* הצגת ציוני תלמידים למורה */}
       {user.role === 'teacher' && activePage === 'teacherStudentResults' && (
-        <TeacherStudentResults results={studentResults} />
+        <TeacherStudentResults
+          results={studentResults}
+          onScoreUpdated={(updatedScore) => {
+            setStudentResults((prev) =>
+              prev.map((s) => (s.id === updatedScore.id ? updatedScore : s))
+            )
+          }}
+        />
       )}
 
       {/* הצגת פורטל התלמיד ושליחת פונקציה לשמירת הציון */}

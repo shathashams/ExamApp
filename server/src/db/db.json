@@ -262,7 +262,9 @@
         "q1": "4",
         "q2": "15",
         "q3": "6"
-      }
+      },
+      "feedback": "Excellent work!",
+      "manualGrade": null
     },
     {
       "id": 2,
@@ -277,7 +279,9 @@
         "q1": "4",
         "q2": "10",
         "q3": "6"
-      }
+      },
+      "feedback": null,
+      "manualGrade": null
     },
     {
       "id": 3,
@@ -293,7 +297,9 @@
         "q2": "warm",
         "q3": "childs",
         "q4": "She goes to school every day."
-      }
+      },
+      "feedback": "Pay attention to irregular plural nouns like child/children.",
+      "manualGrade": 55
     },
     {
       "id": 4,
@@ -309,7 +315,9 @@
         "q2": "cold",
         "q3": "children",
         "q4": "She goes to school every day."
-      }
+      },
+      "feedback": null,
+      "manualGrade": null
     },
     {
       "id": 5,
@@ -325,7 +333,9 @@
         "q2": "cold",
         "q3": "children",
         "q4": "She goes to school every day."
-      }
+      },
+      "feedback": null,
+      "manualGrade": null
     },
     {
       "id": 6,
@@ -340,7 +350,9 @@
         "q1": "4",
         "q2": "15",
         "q3": "6"
-      }
+      },
+      "feedback": null,
+      "manualGrade": null
     },
     {
       "id": 7,
@@ -355,7 +367,9 @@
         "q1": "Queue",
         "q2": "Hyper Text Markup Language",
         "q3": "#"
-      }
+      },
+      "feedback": null,
+      "manualGrade": null
     }
   ]
 }
