@@ -257,7 +257,12 @@
       "score": 3,
       "totalQuestions": 3,
       "grade": 100,
-      "date": "2026-06-02"
+      "date": "2026-06-02",
+      "answers": {
+        "q1": "4",
+        "q2": "15",
+        "q3": "6"
+      }
     },
     {
       "id": 2,
@@ -267,7 +272,12 @@
       "score": 2,
       "totalQuestions": 3,
       "grade": 67,
-      "date": "2026-06-02"
+      "date": "2026-06-02",
+      "answers": {
+        "q1": "4",
+        "q2": "10",
+        "q3": "6"
+      }
     },
     {
       "id": 3,
@@ -277,7 +287,13 @@
       "score": 2,
       "totalQuestions": 4,
       "grade": 50,
-      "date": "2026-06-02"
+      "date": "2026-06-02",
+      "answers": {
+        "q1": "am",
+        "q2": "warm",
+        "q3": "childs",
+        "q4": "She goes to school every day."
+      }
     },
     {
       "id": 4,
@@ -287,7 +303,13 @@
       "score": 4,
       "totalQuestions": 4,
       "grade": 100,
-      "date": "2026-06-03"
+      "date": "2026-06-03",
+      "answers": {
+        "q1": "am",
+        "q2": "cold",
+        "q3": "children",
+        "q4": "She goes to school every day."
+      }
     },
     {
       "id": 5,
@@ -297,7 +319,13 @@
       "score": 3,
       "totalQuestions": 4,
       "grade": 75,
-      "date": "2026-06-03"
+      "date": "2026-06-03",
+      "answers": {
+        "q1": "is",
+        "q2": "cold",
+        "q3": "children",
+        "q4": "She goes to school every day."
+      }
     },
     {
       "id": 6,
@@ -307,7 +335,12 @@
       "score": 3,
       "totalQuestions": 3,
       "grade": 100,
-      "date": "2026-06-04"
+      "date": "2026-06-04",
+      "answers": {
+        "q1": "4",
+        "q2": "15",
+        "q3": "6"
+      }
     },
     {
       "id": 7,
@@ -317,7 +350,12 @@
       "score": 2,
       "totalQuestions": 3,
       "grade": 67,
-      "date": "2026-06-04"
+      "date": "2026-06-04",
+      "answers": {
+        "q1": "Queue",
+        "q2": "Hyper Text Markup Language",
+        "q3": "#"
+      }
     }
   ]
 }

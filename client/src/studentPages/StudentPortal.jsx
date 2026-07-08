@@ -129,6 +129,7 @@ function StudentPortal({ username, onSaveResult }) {
       score: correctAnswers,
       totalQuestions: exam.questions.length,
       grade: gradePercent,
+      answers: selectedAnswers,
     })
   }
 

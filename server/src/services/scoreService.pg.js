@@ -13,7 +13,8 @@ class ScoreService {
                 s.score,
                 s."totalQuestions",
                 s.grade,
-                s.date
+                s.date,
+                s.answers
             FROM "studentScores" s
             JOIN exams e ON s."examId" = e.id
             WHERE e."teacherId" = $1
@@ -34,7 +35,8 @@ class ScoreService {
                 score,
                 "totalQuestions",
                 grade,
-                date
+                date,
+                answers
             FROM "studentScores"
             WHERE "studentId" = $1
             ORDER BY id
@@ -54,7 +56,8 @@ class ScoreService {
                 s.score,
                 s."totalQuestions",
                 s.grade,
-                s.date
+                s.date,
+                s.answers
             FROM "studentScores" s
             JOIN exams e ON s."examId" = e.id
             WHERE s."examId" = $1 AND e."teacherId" = $2
@@ -72,7 +75,8 @@ class ScoreService {
         score,
         totalQuestions = 0,
         grade = 0,
-        date = new Date().toISOString().split('T')[0] // yyyy-mm-dd format
+        date = new Date().toISOString().split('T')[0], // yyyy-mm-dd format
+        answers = {}
     }) {
         const result = await pool.query(`
             INSERT INTO "studentScores" (
@@ -83,9 +87,10 @@ class ScoreService {
                 score,
                 "totalQuestions",
                 grade,
-                date
+                date,
+                answers
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             RETURNING *
         `, [
             studentName,
@@ -95,7 +100,8 @@ class ScoreService {
             Number(score),
             Number(totalQuestions),
             Number(grade),
-            date
+            date,
+            typeof answers === 'string' ? answers : JSON.stringify(answers)
         ])
         return result.rows[0]
     }
