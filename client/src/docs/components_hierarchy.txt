@@ -10,19 +10,22 @@ App
 │
 ├── Teacher Pages
 │   ├── TeacherDashboard
-│   │   └── ExamManagement
 │   ├── CreateExam
-│   └── EditExam
+│   └── TeacherStudentResults
+│       └── SubmissionReviewModal (Detailed Review & Override Modal)
 │
 ├── Student Pages
-│   ├── StudentPortal
-│   └── StudentResults
+│   ├── StudentPortal (Exam Taker View)
+│   └── StudentResults (Grades, Comments & Queries View)
+│       └── StudentSubmissionReviewModal (Student Answer Review Modal)
 │
-├── API
+├── API Services
+│   ├── authService
 │   ├── examService
-│   └── mockDb
+│   ├── scoreService
+│   └── feedbackService
 │
-└── Services
+└── Reusable Utilities
     ├── ConfigService
     ├── LoggerService
     ├── StorageService
@@ -30,20 +33,28 @@ App
 
 Explanation:
 
-App is the main component of the project.
-It controls login, register, navigation, and which page is displayed.
+App is the root component:
+- Handles user authentication state, loading results/feedbacks, and responsive routing.
 
-NavigationMenu shows buttons based on the user role.
+NavigationMenu:
+- Renders the header options (Dashboard, Portal, Results, Theme toggler, Logout) according to the user's role.
 
-Login and Register handle authentication screens.
+Login / Register:
+- Authentication forms with input validations.
 
-TeacherDashboard shows all exams for the teacher.
-ExamManagement allows the teacher to view and edit exam information and questions.
+TeacherDashboard:
+- Lists all draft and published exams with stats and access to ExamManagement.
 
-StudentPortal allows the student to start and submit an exam.
-StudentResults shows the grades of submitted exams.
+CreateExam:
+- Form to configure and save new exam headers.
 
-examService simulates API calls.
-mockDb stores fake exam data.
+TeacherStudentResults:
+- Displays submitted scores, class averages, grade distributions, and bulk tools.
+- Spawns SubmissionReviewModal to allow manual grading and written feedback.
 
-The services folder contains reusable service classes used to keep the code modular.
+StudentPortal:
+- Enables starting assessments, navigating questions, and submitting answers.
+
+StudentResults:
+- Displays published grades, teacher feedback, and lets students submit custom queries.
+- Spawns StudentSubmissionReviewModal to let students review their answers and see correct options.

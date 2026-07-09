@@ -1,95 +1,79 @@
-Main Entities Used by Mock DB and Views
+Main Entities Used by the Database and Views
 
-Entity: User
+Entity: User (users table)
 Fields:
-- username
-- password
-- role
-
-Role values:
-- teacher
-- student
+- id (Primary Key)
+- username (Unique)
+- password (Hashed with bcrypt)
+- fullName
+- role ('teacher' | 'student')
 
 Used in:
 - Login
 - Register
 - NavigationMenu
-- App
+- JWT Authorization Middleware
 
 
-Entity: Exam
+Entity: Exam (exams table)
 Fields:
-- id
+- id (Primary Key)
 - title
-- questions
+- status ('draft' | 'published')
+- duration (Integer, minutes)
+- extraTime (Integer, minutes)
+- allowedMaterials
+- teacherAvailable
+- questions (JSONB list of Question entities)
+- teacherId (Foreign Key referencing User)
 
 Relationship:
-One Exam has many Questions.
-
-Used in:
-- TeacherDashboard
-- ExamManagement
-- StudentPortal
-- StudentResults
+- One Teacher (User) can create many Exams.
+- One Exam contains a JSON array of many Questions.
 
 
 Entity: Question
 Fields:
 - id
 - text
-- options
-- answer
-
-Relationship:
-Each Question belongs to one Exam.
-Each Question has many Answer Options.
-Each Question has one correct answer.
-
-Used in:
-- ExamManagement
-- StudentPortal
+- type ('mcq' | 'open')
+- options (Array of strings, empty for open questions)
+- answer (Correct answer string / model reference answer)
 
 
-Entity: Answer Option
+Entity: StudentResult (studentScores table)
 Fields:
-- option text
-
-Relationship:
-Each Answer Option belongs to one Question.
-
-Used in:
-- StudentPortal
-- ExamManagement
-
-
-Entity: StudentResult
-Fields:
-- id
+- id (Primary Key)
 - studentName
+- studentId (Foreign Key referencing User)
+- examId (Foreign Key referencing Exam)
 - examTitle
-- score
+- score (Correct answers counter)
 - totalQuestions
-- grade
+- grade (Calculated automatic percentage)
+- date (yyyy-mm-dd format)
+- answers (JSONB object of key-value student answers)
+- feedback (Text comments from teacher)
+- manualGrade (Integer override)
+- isPublished (Boolean)
+- factor (Integer grade adjustment value)
 
 Relationship:
-Each StudentResult belongs to one Student and one Exam.
-
-Used in:
-- StudentPortal
-- StudentResults
+- Each StudentResult belongs to one Student (User) and one Exam.
 
 
-Simple Entity Relationship:
+Entity: StudentFeedback (studentFeedbacks table)
+Fields:
+- id (Primary Key)
+- studentId (Foreign Key referencing User)
+- studentName
+- examId (Foreign Key referencing Exam)
+- examTitle
+- message (Student query / feedback text)
+- teacherResponse (Response text from teacher)
+- status ('pending' | 'resolved')
+- studentAcknowledged (Boolean alert dismissal status)
+- createdAt (Timestamp)
 
-User
-│
-├── Teacher
-│   └── manages Exam
-│
-└── Student
-    └── submits Exam
-          └── creates StudentResult
-
-Exam
-└── has many Questions
-      └── has many Answer Options
+Relationship:
+- Each feedback belongs to one student and one exam.

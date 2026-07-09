@@ -1,81 +1,50 @@
 E-Test System - Features Explanation
 
-This project is an online exam system built with React, Bootstrap, Mock API, and local services.
+This project is a Full-Stack online exam system built with React 19, Bootstrap 5, a Node.js/Express backend server, and a PostgreSQL database (with a local JSON fallback option).
 
 Users:
-1. Teacher
+1. Teacher (Lecturer)
 2. Student
 
 Main Features:
 
-1. Authentication
-The system includes Login and Register screens.
-The user can choose a role: Teacher or Student.
-After login, the system shows pages according to the selected role.
+1. Authentication & Security
+- Stateless JWT-based authentication for secure session management.
+- Secure password hashing using bcrypt on the server.
+- Login and Register screens where users select their role (Teacher or Student).
+- Middleware routes verification ensures students cannot access teacher resources and vice versa.
 
-2. Teacher Pages
-The teacher can view all available exams.
-The teacher can click Manage Exam to see exam details.
-Inside Manage Exam, the teacher can:
-- View exam duration
-- View extra time
-- View number of questions
-- View allowed materials
-- View teacher availability
-- Add a new question
-- Edit an existing question
-- Edit exam information
+2. Teacher Pages & Exam Control
+- Teacher Dashboard: View all exams created by the teacher.
+- Create Exam: Author new exams with titles, allowed duration, extra time, permitted materials, and lecturer availability.
+- Exam Management:
+  - Add and edit questions.
+  - Supports multiple question types: Multiple-Choice Questions (MCQs) and Open-Text Questions (auto-graded to 0, requiring manual grading override).
+  - Modify existing question text, choices, and answers inline.
+  - Publish exams: Toggle exam status from 'draft' to 'published' so students can access them.
 
-3. Student Pages
-The student can enter an exam ID and start an exam.
-The student can answer multiple-choice questions.
-The student can move between questions using Previous and Next.
-On the last question, the student can submit the exam.
-After submission, the system calculates the score and shows the grade.
+3. Teacher Student Results & Grading
+- Review Student Submissions: A side-by-side comparison of student responses against correct answers.
+- Manual Grading & Feedback: Override calculated grades and write direct feedback for each student.
+- Centralized Exam Management Tools:
+  - Bulk Publish: Single-click button ("Publish All Marks") to release all results of an exam to students simultaneously.
+  - Grade Factor Curves: Add factor adjustments (positive/negative points) globally to all submissions of a specific exam, with grades capped at 100%.
+- Statistics & Visualization: Features a line-graph chart detailing score distributions and calculates exam grade averages.
 
-4. Student Results
-The system saves the student result during the session.
-The student can open the Results page and see submitted exam results.
+4. Student Portal
+- Enter Exam: Access any published exam by its unique ID.
+- Take Exam: A step-by-step test-taking screen supporting navigation buttons (Next/Previous), progress bar indicators, MCQ radio selection buttons, and textarea boxes for open-text answers.
+- Submit Exam: Submits selected answers securely to the backend database.
 
-5. Navigation Menu
-The navigation menu changes according to the user role.
-Teacher users see Teacher Dashboard and Create Exam.
-Student users see Student Portal and Results.
+5. Student Results & Review
+- View Grades: Students see their finalized score and written comments once the teacher reviews and publishes the results.
+- Review Answers: Click "View Details" to open a detailed modal displaying the correctness of their submitted answers, reference answers, and options.
+- Feedback & Query Form: Ask questions or submit comments directly to the teacher.
 
-6. Mock API and Mock Database
-The project uses mockDb.js as a fake database.
-The examService.js file simulates API calls and returns exams from the mock database.
+6. Navigation Menu
+- Dynamic menu adjusts layout based on whether the logged-in user is a Teacher or a Student.
+- Theme Switcher: Supports switching between Light and Dark mode layout styles.
 
-7. Services
-The project includes generic services:
-- ConfigService: stores app configuration values.
-- LoggerService: prints messages to the console.
-- StorageService: saves and reads data from localStorage.
-- NotifyService: shows simple messages to the user.
-
-Use Cases:
-
-Teacher:
-- Login as teacher
-- View all exams
-- Manage an exam
-- Edit exam information
-- Add a question
-- Edit a question
-
-Student:
-- Login as student
-- Start exam by ID
-- Answer questions
-- Submit exam
-- View score
-- View results
-
-Pages:
-- Login page
-- Register page
-- Teacher Dashboard
-- Exam Management page
-- Create Exam page
-- Student Portal
-- Student Results page
+7. Database Modes
+- PostgreSQL Mode (docker_pg): Connects to a local PostgreSQL instance running inside a Docker container (default/recommended).
+- JSON Mode (json): Fallback database helper storing records to db.json.

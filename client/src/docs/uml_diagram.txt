@@ -6,15 +6,16 @@ Attributes:
 - defaultExamTimeMinutes
 - extraTimeMinutes
 - teacherAvailableMinutes
-
 Methods:
 - getAppName()
 - getDefaultExamTime()
 - getExtraTime()
 - getTeacherAvailableTime()
+- isServerMode()
+- getApiBaseUrl()
 
 Purpose:
-Stores general configuration values for the application.
+Stores general configuration values and API endpoint paths.
 
 
 Class: LoggerService
@@ -35,7 +36,7 @@ Methods:
 - clear()
 
 Purpose:
-Handles saving and reading data from localStorage.
+Handles saving, reading, and clearing data in localStorage (e.g. user tokens).
 
 
 Class: NotifyService
@@ -45,7 +46,16 @@ Methods:
 - info(message)
 
 Purpose:
-Shows simple notification messages to the user.
+Shows bootstrap notification/toast messages to the user.
+
+
+Module: authService
+Functions:
+- login(username, password, role)
+- register(username, password, fullName, role)
+
+Purpose:
+Authenticates users against API or mockDb.
 
 
 Module: examService
@@ -53,9 +63,33 @@ Functions:
 - getAllExams()
 - getExamById(id)
 - createExam(exam)
+- updateExam(updatedExam)
 
 Purpose:
-Simulates API calls and returns data from the mock database.
+Fetches, creates, and updates exam configurations.
+
+
+Module: scoreService
+Functions:
+- getScores(userId, userRole, username)
+- saveScore(scoreData, userId, userRole, username)
+- updateScore(id, scoreData)
+- publishAllScores(examId)
+- applyFactor(examId, factor)
+
+Purpose:
+Manages student results, grading, bulk publishing, and grade factors.
+
+
+Module: feedbackService
+Functions:
+- getFeedbacks()
+- submitFeedback(feedbackData)
+- respondToFeedback(id, teacherResponse)
+- acknowledgeFeedback(id)
+
+Purpose:
+Manages the message exchange / queries between students and teachers.
 
 
 Component: App
@@ -63,17 +97,20 @@ State:
 - user
 - authMode
 - activePage
-- users
+- theme
 - studentResults
-
+- feedbacks
 Main Functions:
 - handleLogin()
 - handleRegister()
-- handleLogout()
 - handleSaveResult()
+- handleLogout()
+- handleFeedbackSubmitted()
+- handleRespondToFeedback()
+- handleDismissFeedbackAlert()
 
 Purpose:
-Controls the main flow of the application.
+Main entry point; coordinates state distribution and active view panels.
 
 
 Component: StudentPortal
@@ -84,8 +121,6 @@ State:
 - currentQuestionIndex
 - selectedAnswers
 - isSubmitted
-- score
-
 Main Functions:
 - handleStartExam()
 - handleExitExam()
@@ -95,7 +130,7 @@ Main Functions:
 - handleSubmitExam()
 
 Purpose:
-Allows the student to take an exam and submit answers.
+Renders the step-by-step exam assessment form for students.
 
 
 Component: ExamManagement
@@ -107,7 +142,6 @@ State:
 - examInfo
 - newQuestion
 - editQuestion
-
 Main Functions:
 - startEditQuestion()
 - saveQuestionChanges()
@@ -115,4 +149,40 @@ Main Functions:
 - handleSaveExamInfo()
 
 Purpose:
-Allows the teacher to manage exam details and questions.
+Renders the teacher's exam setup editor (question adding, type toggling, metadata updates).
+
+
+Component: TeacherStudentResults
+State:
+- selectedExam
+- exams
+- selectedSubmission
+- factorVal
+- bulkSuccess
+- bulkError
+- processingBulk
+Main Functions:
+- handleTogglePublish()
+- handlePublishAll()
+- handleApplyFactor()
+
+Purpose:
+Displays student scores, averages, distribution charts, and bulk release tools.
+
+
+Component: SubmissionReviewModal
+State:
+- manualGradeVal
+- feedbackVal
+- isPublishedVal
+- savingGrading
+Main Functions:
+- handleSaveGrading()
+
+Purpose:
+Teacher modal for assessing student answers, adding custom notes, and overriding grades.
+
+
+Component: StudentSubmissionReviewModal
+Purpose:
+Student modal to view the correctness of their submitted answers after grades are published.

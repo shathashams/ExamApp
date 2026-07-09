@@ -81,6 +81,8 @@ erDiagram
         jsonb answers
         string feedback
         int manualGrade
+        boolean isPublished
+        int factor
     }
 
     USERS ||--o{ EXAMS : "creates"
