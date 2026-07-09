@@ -527,75 +527,77 @@ function TeacherStudentResults({ results, onScoreUpdated }) {
         {/* טבלת ציונים */}
         <h4 className="mb-3">Grades Table</h4>
 
-        <table className="table table-bordered table-hover">
-          <thead className="table-light">
-            <tr>
-              <th>Student Name</th>
-              <th>Exam Name</th>
-              <th>Correct Answers</th>
-              <th>Total Questions</th>
-              <th>Final Grade</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
+        <div className="table-responsive">
+          <table className="table table-bordered table-hover">
+            <thead className="table-light">
+              <tr>
+                <th>Student Name</th>
+                <th>Exam Name</th>
+                <th>Correct Answers</th>
+                <th>Total Questions</th>
+                <th>Final Grade</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
 
-          <tbody>
-            {filteredResults.map((result) => {
-              const finalGrade = getFinalGrade(result)
-              const hasOverride = result.manualGrade !== null && result.manualGrade !== undefined
-              const isPublished = result.isPublished !== false
+            <tbody>
+              {filteredResults.map((result) => {
+                const finalGrade = getFinalGrade(result)
+                const hasOverride = result.manualGrade !== null && result.manualGrade !== undefined
+                const isPublished = result.isPublished !== false
 
-              return (
-                <tr key={result.id}>
-                  <td>{result.studentName}</td>
-                  <td>{result.examTitle}</td>
-                  <td>{result.score}</td>
-                  <td>{result.totalQuestions}</td>
-                  <td>
-                    <span className="fw-bold">{finalGrade}%</span>
-                    {hasOverride && (
-                      <span className="badge bg-info text-dark ms-2" style={{ fontSize: '0.7rem' }}>
-                        Overridden
+                return (
+                  <tr key={result.id}>
+                    <td>{result.studentName}</td>
+                    <td>{result.examTitle}</td>
+                    <td>{result.score}</td>
+                    <td>{result.totalQuestions}</td>
+                    <td>
+                      <span className="fw-bold">{finalGrade}%</span>
+                      {hasOverride && (
+                        <span className="badge bg-info text-dark ms-2" style={{ fontSize: '0.7rem' }}>
+                          Overridden
+                        </span>
+                      )}
+                      {result.factor > 0 && (
+                        <span className="badge bg-primary text-white ms-2" style={{ fontSize: '0.7rem' }}>
+                          +{result.factor} Factor
+                        </span>
+                      )}
+                      {result.factor < 0 && (
+                        <span className="badge bg-danger text-white ms-2" style={{ fontSize: '0.7rem' }}>
+                          {result.factor} Factor
+                        </span>
+                      )}
+                    </td>
+                    <td>
+                      <span className={`badge ${isPublished ? 'bg-success' : 'bg-warning text-dark'}`}>
+                        {isPublished ? 'Published' : 'Unpublished'}
                       </span>
-                    )}
-                    {result.factor > 0 && (
-                      <span className="badge bg-primary text-white ms-2" style={{ fontSize: '0.7rem' }}>
-                        +{result.factor} Factor
-                      </span>
-                    )}
-                    {result.factor < 0 && (
-                      <span className="badge bg-danger text-white ms-2" style={{ fontSize: '0.7rem' }}>
-                        {result.factor} Factor
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    <span className={`badge ${isPublished ? 'bg-success' : 'bg-warning text-dark'}`}>
-                      {isPublished ? 'Published' : 'Unpublished'}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-outline-primary"
-                      onClick={() => setSelectedSubmission(result)}
-                    >
-                      View & Grade
-                    </button>
-                    <button
-                      type="button"
-                      className={`btn btn-sm ms-2 ${isPublished ? 'btn-outline-warning' : 'btn-outline-success'}`}
-                      onClick={() => handleTogglePublish(result)}
-                    >
-                      {isPublished ? 'Unpublish' : 'Publish'}
-                    </button>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => setSelectedSubmission(result)}
+                      >
+                        View & Grade
+                      </button>
+                      <button
+                        type="button"
+                        className={`btn btn-sm ms-2 ${isPublished ? 'btn-outline-warning' : 'btn-outline-success'}`}
+                        onClick={() => handleTogglePublish(result)}
+                      >
+                        {isPublished ? 'Unpublish' : 'Publish'}
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
 
         {/* מודל להצגת התשובות ועריכת הציון והמשוב */}
         {selectedSubmission && (
