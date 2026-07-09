@@ -1,5 +1,6 @@
 // דף ניהול מבחן למורה
 // מאפשר צפייה בפרטי מבחן, עריכת שאלות, הוספת שאלה ועריכת מידע בסיסי של המבחן
+// תומך בסוגי שאלות: MCQ (בחירה מרובה) ו-Open Text (תשובה פתוחה)
 
 import { useState } from 'react'
 import { updateExam } from '../api/examService'
@@ -28,8 +29,10 @@ function ExamManagement({ exam, onBack }) {
   })
 
   // שמירת הערכים שהמורה מכניס בטופס הוספת שאלה חדשה
+  // type: 'mcq' = שאלה סגורה (בחירה מרובה), 'open' = שאלה פתוחה (תשובה חופשית)
   const [newQuestion, setNewQuestion] = useState({
     text: '',
+    type: 'mcq',
     options: '',
     answer: '',
   })
@@ -37,6 +40,7 @@ function ExamManagement({ exam, onBack }) {
   // שמירת הערכים של השאלה שנמצאת כרגע בעריכה
   const [editQuestion, setEditQuestion] = useState({
     text: '',
+    type: 'mcq',
     options: '',
     answer: '',
   })
@@ -55,57 +59,80 @@ function ExamManagement({ exam, onBack }) {
     )
   }
 
+  // פונקציית עזר: קבלת סוג שאלה — תומכת בשאלות ישנות שאין להן שדה type
+  const getQuestionType = (question) =>
+    question.type ||
+    (!question.options || question.options.length === 0 ||
+      (question.options.length === 1 && question.options[0] === '')
+      ? 'open'
+      : 'mcq')
+
+  // ספירת שאלות פתוחות וסגורות
   const openQuestions = localExam.questions.filter(
-    (q) => !q.options || q.options.length === 0 || (q.options.length === 1 && q.options[0] === '')
+    (q) => getQuestionType(q) === 'open'
   ).length
   const closedQuestions = localExam.questions.length - openQuestions
 
   // פתיחת טופס עריכת שאלה עם הערכים הקיימים שלה
   const startEditQuestion = (question) => {
     setEditingQuestionId(question.id)
+    const qType = getQuestionType(question)
     setEditQuestion({
       text: question.text,
-      options: question.options?.join(', ') || '',
+      type: qType,
+      options: qType === 'mcq' ? (question.options?.join(', ') || '') : '',
       answer: question.answer,
     })
   }
 
-  // שמירת שינויי שאלה ועדכון המבחן במאגר המדומה
+  // שמירת שינויי שאלה ועדכון המבחן במאגר
   const saveQuestionChanges = async (questionId) => {
     const updatedQuestions = localExam.questions.map((question) => {
-      if (question.id !== questionId) {
-        return question
+      if (question.id !== questionId) return question
+
+      if (editQuestion.type === 'open') {
+        return {
+          ...question,
+          text: editQuestion.text,
+          type: 'open',
+          options: [],
+          answer: editQuestion.answer,
+        }
       }
 
       return {
         ...question,
         text: editQuestion.text,
-        options: editQuestion.options.split(',').map((option) => option.trim()),
+        type: 'mcq',
+        options: editQuestion.options.split(',').map((o) => o.trim()),
         answer: editQuestion.answer,
       }
     })
 
-    const updatedExam = {
-      ...localExam,
-      questions: updatedQuestions,
-    }
-
+    const updatedExam = { ...localExam, questions: updatedQuestions }
     await updateExam(updatedExam)
     setLocalExam(updatedExam)
     setEditingQuestionId(null)
   }
 
-  // הוספת שאלה חדשה למבחן ועדכון המאגר המדומה
+  // הוספת שאלה חדשה למבחן ועדכון המאגר
   const handleAddQuestion = async () => {
-    if (!newQuestion.text || !newQuestion.options || !newQuestion.answer) {
-      alert('Please fill all question fields.')
+    if (!newQuestion.text || !newQuestion.answer) {
+      alert('Please fill in the question text and answer.')
+      return
+    }
+    if (newQuestion.type === 'mcq' && !newQuestion.options) {
+      alert('Please fill in the answer options for a multiple choice question.')
       return
     }
 
     const questionToAdd = {
       id: Date.now(),
       text: newQuestion.text,
-      options: newQuestion.options.split(',').map((option) => option.trim()),
+      type: newQuestion.type,
+      options: newQuestion.type === 'open'
+        ? []
+        : newQuestion.options.split(',').map((o) => o.trim()),
       answer: newQuestion.answer,
     }
 
@@ -116,17 +143,11 @@ function ExamManagement({ exam, onBack }) {
 
     await updateExam(updatedExam)
     setLocalExam(updatedExam)
-
-    setNewQuestion({
-      text: '',
-      options: '',
-      answer: '',
-    })
-
+    setNewQuestion({ text: '', type: 'mcq', options: '', answer: '' })
     setShowAddQuestion(false)
   }
 
-  // שמירת מידע כללי של המבחן ועדכון המאגר המדומה
+  // שמירת מידע כללי של המבחן ועדכון המאגר
   const handleSaveExamInfo = async () => {
     const updatedExam = {
       ...localExam,
@@ -137,7 +158,6 @@ function ExamManagement({ exam, onBack }) {
       allowedMaterials: examInfo.allowedMaterials,
       teacherAvailable: examInfo.teacherAvailable,
     }
-
     await updateExam(updatedExam)
     setLocalExam(updatedExam)
     setShowEditInfo(false)
@@ -171,7 +191,6 @@ function ExamManagement({ exam, onBack }) {
             >
               Edit Exam Info
             </button>
-
             <button
               className="btn btn-primary"
               onClick={() => setShowAddQuestion(!showAddQuestion)}
@@ -214,62 +233,58 @@ function ExamManagement({ exam, onBack }) {
                 </div>
               </div>
 
-              <label className="form-label small mb-1 text-muted">Duration in minutes</label>
-              <input
-                type="number"
-                className="form-control mb-2"
-                placeholder="Duration in minutes"
-                value={examInfo.duration}
-                onChange={(e) =>
-                  setExamInfo({ ...examInfo, duration: e.target.value })
-                }
-              />
+              <div className="row mb-2">
+                <div className="col-md-4">
+                  <label className="form-label small mb-1 text-muted">Duration (min)</label>
+                  <input
+                    className="form-control"
+                    type="number"
+                    value={examInfo.duration}
+                    onChange={(e) =>
+                      setExamInfo({ ...examInfo, duration: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label small mb-1 text-muted">Extra Time (min)</label>
+                  <input
+                    className="form-control"
+                    type="number"
+                    value={examInfo.extraTime}
+                    onChange={(e) =>
+                      setExamInfo({ ...examInfo, extraTime: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label small mb-1 text-muted">Allowed Materials</label>
+                  <input
+                    className="form-control"
+                    placeholder="e.g. Calculator"
+                    value={examInfo.allowedMaterials}
+                    onChange={(e) =>
+                      setExamInfo({ ...examInfo, allowedMaterials: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
 
-              <input
-                type="number"
-                className="form-control mb-2"
-                placeholder="Extra time in minutes"
-                value={examInfo.extraTime}
-                onChange={(e) =>
-                  setExamInfo({ ...examInfo, extraTime: e.target.value })
-                }
-              />
+              <div className="mb-3">
+                <label className="form-label small mb-1 text-muted">Teacher Availability</label>
+                <input
+                  className="form-control"
+                  placeholder="e.g. First 20 minutes of the exam"
+                  value={examInfo.teacherAvailable}
+                  onChange={(e) =>
+                    setExamInfo({ ...examInfo, teacherAvailable: e.target.value })
+                  }
+                />
+              </div>
 
-              <input
-                className="form-control mb-2"
-                placeholder="Allowed materials"
-                value={examInfo.allowedMaterials}
-                onChange={(e) =>
-                  setExamInfo({
-                    ...examInfo,
-                    allowedMaterials: e.target.value,
-                  })
-                }
-              />
-
-              <input
-                className="form-control mb-3"
-                placeholder="Teacher availability"
-                value={examInfo.teacherAvailable}
-                onChange={(e) =>
-                  setExamInfo({
-                    ...examInfo,
-                    teacherAvailable: e.target.value,
-                  })
-                }
-              />
-
-              <button
-                className="btn btn-success me-2"
-                onClick={handleSaveExamInfo}
-              >
-                Save Exam Info
+              <button className="btn btn-success me-2" onClick={handleSaveExamInfo}>
+                Save Info
               </button>
-
-              <button
-                className="btn btn-outline-secondary"
-                onClick={() => setShowEditInfo(false)}
-              >
+              <button className="btn btn-outline-secondary" onClick={() => setShowEditInfo(false)}>
                 Cancel
               </button>
             </div>
@@ -328,6 +343,34 @@ function ExamManagement({ exam, onBack }) {
             <div className="card-body">
               <h4>Add New Question</h4>
 
+              {/* בחירת סוג השאלה: MCQ או Open Text */}
+              <div className="mb-3">
+                <label className="form-label small fw-semibold text-muted d-block">
+                  Question Type
+                </label>
+                <div className="btn-group" role="group" aria-label="Question type">
+                  <button
+                    type="button"
+                    className={`btn ${newQuestion.type === 'mcq' ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => setNewQuestion({ ...newQuestion, type: 'mcq', options: '' })}
+                  >
+                    ☑ Multiple Choice (MCQ)
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn ${newQuestion.type === 'open' ? 'btn-info' : 'btn-outline-info'}`}
+                    onClick={() => setNewQuestion({ ...newQuestion, type: 'open', options: '' })}
+                  >
+                    ✏️ Open Text
+                  </button>
+                </div>
+                {newQuestion.type === 'open' && (
+                  <p className="text-muted small mt-2 mb-0">
+                    Students type a free-text answer. Auto-score is 0 — use manual grade to score.
+                  </p>
+                )}
+              </div>
+
               <input
                 className="form-control mb-2"
                 placeholder="Question text"
@@ -337,34 +380,40 @@ function ExamManagement({ exam, onBack }) {
                 }
               />
 
-              <input
-                className="form-control mb-2"
-                placeholder="Answer options separated by commas"
-                value={newQuestion.options}
-                onChange={(e) =>
-                  setNewQuestion({ ...newQuestion, options: e.target.value })
-                }
-              />
+              {/* שדה אפשרויות תשובה — מוצג רק בשאלה סגורה */}
+              {newQuestion.type === 'mcq' && (
+                <input
+                  className="form-control mb-2"
+                  placeholder="Answer options separated by commas (e.g. Yes, No, Maybe)"
+                  value={newQuestion.options}
+                  onChange={(e) =>
+                    setNewQuestion({ ...newQuestion, options: e.target.value })
+                  }
+                />
+              )}
 
               <input
                 className="form-control mb-3"
-                placeholder="Correct answer"
+                placeholder={
+                  newQuestion.type === 'open'
+                    ? 'Model answer (for teacher reference — not shown to student)'
+                    : 'Correct answer (must match one option exactly)'
+                }
                 value={newQuestion.answer}
                 onChange={(e) =>
                   setNewQuestion({ ...newQuestion, answer: e.target.value })
                 }
               />
 
-              <button
-                className="btn btn-success me-2"
-                onClick={handleAddQuestion}
-              >
+              <button className="btn btn-success me-2" onClick={handleAddQuestion}>
                 Save Question
               </button>
-
               <button
                 className="btn btn-outline-secondary"
-                onClick={() => setShowAddQuestion(false)}
+                onClick={() => {
+                  setShowAddQuestion(false)
+                  setNewQuestion({ text: '', type: 'mcq', options: '', answer: '' })
+                }}
               >
                 Cancel
               </button>
@@ -376,88 +425,130 @@ function ExamManagement({ exam, onBack }) {
 
         <div className="list-group">
           {/* הצגת כל השאלות של המבחן עם אפשרות עריכה */}
-          {localExam.questions.map((question, index) => (
-            <div className="list-group-item mb-3 rounded" key={question.id}>
-              <div className="d-flex justify-content-between align-items-start">
-                <div>
-                  <h5>
-                    Question {index + 1}: {question.text}
-                  </h5>
+          {localExam.questions.map((question, index) => {
+            const qType = getQuestionType(question)
 
-                  <p className="mb-1">
-                    <strong>Correct Answer:</strong> {question.answer}
-                  </p>
+            return (
+              <div className="list-group-item mb-3 rounded" key={question.id}>
+                <div className="d-flex justify-content-between align-items-start">
+                  <div className="flex-grow-1">
+                    <div className="d-flex align-items-center gap-2 mb-1">
+                      <h5 className="mb-0">
+                        Question {index + 1}: {question.text}
+                      </h5>
+                      {/* תג המציין את סוג השאלה */}
+                      {qType === 'open' ? (
+                        <span className="badge bg-info text-dark" style={{ fontSize: '0.7rem' }}>
+                          Open Text
+                        </span>
+                      ) : (
+                        <span className="badge bg-secondary" style={{ fontSize: '0.7rem' }}>
+                          MCQ
+                        </span>
+                      )}
+                    </div>
 
-                  {question.options && (
-                    <p className="text-muted mb-0">
-                      Options: {question.options.join(', ')}
+                    <p className="mb-1">
+                      <strong>
+                        {qType === 'open' ? 'Model Answer:' : 'Correct Answer:'}
+                      </strong>{' '}
+                      {question.answer}
                     </p>
-                  )}
+
+                    {qType === 'mcq' && question.options && question.options.length > 0 && (
+                      <p className="text-muted mb-0">
+                        Options: {question.options.join(', ')}
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    className="btn btn-outline-primary btn-sm ms-2"
+                    onClick={() => startEditQuestion(question)}
+                  >
+                    Edit
+                  </button>
                 </div>
 
-                <button
-                  className="btn btn-outline-primary btn-sm"
-                  onClick={() => startEditQuestion(question)}
-                >
-                  Edit
-                </button>
+                {/* טופס עריכת שאלה שמופיע רק עבור השאלה שנבחרה */}
+                {editingQuestionId === question.id && (
+                  <div className="mt-3 border-top pt-3">
+                    <h6>Edit Question</h6>
+
+                    {/* בחירת סוג השאלה בטופס עריכה */}
+                    <div className="mb-3">
+                      <label className="form-label small fw-semibold text-muted d-block">
+                        Question Type
+                      </label>
+                      <div className="btn-group" role="group">
+                        <button
+                          type="button"
+                          className={`btn btn-sm ${editQuestion.type === 'mcq' ? 'btn-primary' : 'btn-outline-primary'}`}
+                          onClick={() => setEditQuestion({ ...editQuestion, type: 'mcq' })}
+                        >
+                          ☑ Multiple Choice (MCQ)
+                        </button>
+                        <button
+                          type="button"
+                          className={`btn btn-sm ${editQuestion.type === 'open' ? 'btn-info' : 'btn-outline-info'}`}
+                          onClick={() => setEditQuestion({ ...editQuestion, type: 'open', options: '' })}
+                        >
+                          ✏️ Open Text
+                        </button>
+                      </div>
+                    </div>
+
+                    <input
+                      className="form-control mb-2"
+                      placeholder="Question text"
+                      value={editQuestion.text}
+                      onChange={(e) =>
+                        setEditQuestion({ ...editQuestion, text: e.target.value })
+                      }
+                    />
+
+                    {/* שדה אפשרויות תשובה בעריכה — רק לשאלה סגורה */}
+                    {editQuestion.type === 'mcq' && (
+                      <input
+                        className="form-control mb-2"
+                        placeholder="Answer options separated by commas"
+                        value={editQuestion.options}
+                        onChange={(e) =>
+                          setEditQuestion({ ...editQuestion, options: e.target.value })
+                        }
+                      />
+                    )}
+
+                    <input
+                      className="form-control mb-3"
+                      placeholder={
+                        editQuestion.type === 'open'
+                          ? 'Model answer (for teacher reference only)'
+                          : 'Correct answer'
+                      }
+                      value={editQuestion.answer}
+                      onChange={(e) =>
+                        setEditQuestion({ ...editQuestion, answer: e.target.value })
+                      }
+                    />
+
+                    <button
+                      className="btn btn-success btn-sm me-2"
+                      onClick={() => saveQuestionChanges(question.id)}
+                    >
+                      Save Changes
+                    </button>
+                    <button
+                      className="btn btn-outline-secondary btn-sm"
+                      onClick={() => setEditingQuestionId(null)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
               </div>
-
-              {/* טופס עריכת שאלה שמופיע רק עבור השאלה שנבחרה */}
-              {editingQuestionId === question.id && (
-                <div className="mt-3 border-top pt-3">
-                  <h6>Edit Question</h6>
-
-                  <input
-                    className="form-control mb-2"
-                    value={editQuestion.text}
-                    onChange={(e) =>
-                      setEditQuestion({
-                        ...editQuestion,
-                        text: e.target.value,
-                      })
-                    }
-                  />
-
-                  <input
-                    className="form-control mb-2"
-                    value={editQuestion.options}
-                    onChange={(e) =>
-                      setEditQuestion({
-                        ...editQuestion,
-                        options: e.target.value,
-                      })
-                    }
-                  />
-
-                  <input
-                    className="form-control mb-3"
-                    value={editQuestion.answer}
-                    onChange={(e) =>
-                      setEditQuestion({
-                        ...editQuestion,
-                        answer: e.target.value,
-                      })
-                    }
-                  />
-
-                  <button
-                    className="btn btn-success btn-sm me-2"
-                    onClick={() => saveQuestionChanges(question.id)}
-                  >
-                    Save Changes
-                  </button>
-
-                  <button
-                    className="btn btn-outline-secondary btn-sm"
-                    onClick={() => setEditingQuestionId(null)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </div>
