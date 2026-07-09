@@ -1,0 +1,81 @@
+name: CI — Lint, Build & Validate
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  # ─── Job 1: Client — Install, Lint, Build ─────────────────────────────────
+  client:
+    name: "Client — Lint & Build"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Build (Vite)
+        run: npm run build
+        env:
+          # Placeholder URL — only needed so Vite resolves import.meta.env.VITE_API_URL
+          # This is NOT a secret; it just satisfies the build step in CI
+          VITE_API_URL: http://localhost:5000/api
+
+  # ─── Job 2: Server — Install + Syntax Check ───────────────────────────────
+  server:
+    name: "Server — Syntax Check"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check JavaScript syntax
+        # node --check validates syntax without executing the file
+        # This means no DB connection, no PORT binding, no .env needed
+        run: node --check src/index.js
+
+  # ─── Job 3: Docker Compose — Validate YAML Only ───────────────────────────
+  docker-compose-validate:
+    name: "Docker Compose — Config Validate"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate docker-compose.yml
+        # docker compose config only validates YAML structure — does NOT start any containers
+        # Does NOT connect to a database, does NOT pull images
+        run: docker compose config
