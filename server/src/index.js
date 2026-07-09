@@ -8,6 +8,7 @@ import userRoutes from './routes/userRoutes.js'
 import examRoutes from './routes/examRoutes.js'
 import scoreRoutes from './routes/scoreRoutes.js'
 import feedbackRoutes from './routes/feedbackRoutes.js'
+import monitorRoutes from './routes/monitorRoutes.js'
 
 dotenv.config()
 
@@ -61,6 +62,7 @@ app.use('/api/users', userRoutes)
 app.use('/api/exams', examRoutes)
 app.use('/api/scores', scoreRoutes)
 app.use('/api/feedbacks', feedbackRoutes)
+app.use('/api/monitor', monitorRoutes)
 
 // טיפול מרכזי בשגיאות שרת
 app.use(errorHandler)

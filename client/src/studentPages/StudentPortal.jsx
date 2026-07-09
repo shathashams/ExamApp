@@ -3,8 +3,12 @@
 
 import { useState, useEffect } from 'react'
 import { getExamById, getAllExams } from '../api/examService'
+import { startLiveSession, sendLiveHeartbeat, endLiveSession } from '../api/monitorService'
 
 function StudentPortal({ username, onSaveResult }) {
+  // Heartbeat tracking for live exam monitoring
+  const [heartbeatIntervalId, setHeartbeatIntervalId] = useState(null)
+
   // שומר את מספר המבחן שהתלמיד מקליד
   const [examId, setExamId] = useState('')
 
@@ -44,6 +48,15 @@ function StudentPortal({ username, onSaveResult }) {
     }
   }, [])
 
+  // Clear heartbeat interval timer on component unmount
+  useEffect(() => {
+    return () => {
+      if (heartbeatIntervalId) {
+        clearInterval(heartbeatIntervalId)
+      }
+    }
+  }, [heartbeatIntervalId])
+
   // התחלת מבחן לפי מזהה שהמשתמש מכניס
   const handleStartExam = async () => {
     if (!examId) {
@@ -60,6 +73,21 @@ function StudentPortal({ username, onSaveResult }) {
       return
     }
 
+    // Start live exam session tracking
+    try {
+      await startLiveSession(data.id, data.title)
+      const intervalId = setInterval(async () => {
+        try {
+          await sendLiveHeartbeat(data.id)
+        } catch (err) {
+          console.error('Failed to send heartbeat:', err)
+        }
+      }, 10000)
+      setHeartbeatIntervalId(intervalId)
+    } catch (err) {
+      console.error('Failed to notify exam start to monitor:', err)
+    }
+
     // איפוס מצב המבחן בכל התחלה חדשה
     setExam(data)
     setMessage('')
@@ -69,7 +97,18 @@ function StudentPortal({ username, onSaveResult }) {
   }
 
   // יציאה מהמבחן וחזרה למסך ההתחלה של התלמיד
-  const handleExitExam = () => {
+  const handleExitExam = async () => {
+    if (heartbeatIntervalId) {
+      clearInterval(heartbeatIntervalId)
+      setHeartbeatIntervalId(null)
+    }
+    if (exam) {
+      try {
+        await endLiveSession(exam.id)
+      } catch (err) {
+        console.error('Failed to end monitor session:', err)
+      }
+    }
     setExam(null)
     setExamId('')
     setMessage('')
@@ -100,7 +139,17 @@ function StudentPortal({ username, onSaveResult }) {
     }
   }
 
-  const handleSubmitExam = () => {
+  const handleSubmitExam = async () => {
+    if (heartbeatIntervalId) {
+      clearInterval(heartbeatIntervalId)
+      setHeartbeatIntervalId(null)
+    }
+    try {
+      await endLiveSession(exam.id)
+    } catch (err) {
+      console.error('Failed to notify exam end to monitor:', err)
+    }
+
     let correctAnswers = 0
 
     exam.questions.forEach((question) => {

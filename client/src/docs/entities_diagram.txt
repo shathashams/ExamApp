@@ -75,5 +75,18 @@ Fields:
 - studentAcknowledged (Boolean alert dismissal status)
 - createdAt (Timestamp)
 
-Relationship:
 - Each feedback belongs to one student and one exam.
+
+
+Entity: ActiveSession (activeSessions table)
+Fields:
+- id (Primary Key)
+- studentName
+- studentId (Foreign Key referencing User)
+- examId (Foreign Key referencing Exam)
+- examTitle
+- startTime (Timestamp)
+- lastActive (Timestamp heartbeat tracking)
+
+Relationship:
+- Tracks live test session of a Student (User) for an Exam.
