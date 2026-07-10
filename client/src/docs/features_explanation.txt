@@ -35,6 +35,7 @@ Main Features:
 4. Student Portal
 - Enter Exam: Access any published exam by its unique ID.
 - Take Exam: A step-by-step test-taking screen supporting navigation buttons (Next/Previous), progress bar indicators, MCQ radio selection buttons, and textarea boxes for open-text answers.
+- Countdown Timer: A live countdown clock displays remaining time based on the exam duration. Changes color at 5 minutes (yellow) and 1 minute (red) warnings, and auto-submits the exam when time reaches zero.
 - Submit Exam: Submits selected answers securely to the backend database.
 
 5. Student Results & Review
