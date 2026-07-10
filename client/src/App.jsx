@@ -1,7 +1,7 @@
 // הקומפוננטה הראשית של האפליקציה
 // אחראית על ניהול התחברות, הרשמה, ניווט בין דפים והצגת מסך לפי תפקיד המשתמש
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import NavigationMenu from './components/NavigationMenu'
@@ -12,6 +12,7 @@ import StudentResults from './studentPages/StudentResults'
 import TeacherStudentResults from './teacherPages/TeacherStudentResults'
 import LiveMonitor from './teacherPages/LiveMonitor'
 import StorageService from './utils/StorageService'
+import NotifyService from './utils/NotifyService'
 import * as authService from './api/authService'
 import * as scoreService from './api/scoreService'
 import { getFeedbacks, acknowledgeFeedback } from './api/feedbackService'
@@ -42,6 +43,10 @@ function App() {
   // שומר את פידבקי/שאלות התלמידים למורה והמענים להם
   const [feedbacks, setFeedbacks] = useState([])
 
+  // Alerts for newly published marks/scores
+  const [publishAlerts, setPublishAlerts] = useState([])
+  const hasFetchedScoresRef = useRef(false)
+
   // החלת ערכת הנושא בעת שינוי
   useEffect(() => {
     if (theme === 'dark') {
@@ -59,13 +64,116 @@ function App() {
         try {
           const scores = await scoreService.getScores(user.id, user.role, user.username)
           setStudentResults(scores)
+          hasFetchedScoresRef.current = true
+
+          // Check for unseen published scores for students on initial load/login
+          if (user.role === 'student') {
+            const seenIds = JSON.parse(localStorage.getItem('seenPublishedScores') || '[]')
+            const unseenPublished = scores.filter(score => {
+              const isPublished = score.isPublished !== false
+              return isPublished && !seenIds.includes(score.id)
+            })
+
+            if (unseenPublished.length > 0) {
+              setPublishAlerts(prev => {
+                const newAlerts = [...prev]
+                unseenPublished.forEach(score => {
+                  if (!newAlerts.some(a => a.scoreId === score.id)) {
+                    const finalGrade = score.manualGrade !== null && score.manualGrade !== undefined ? score.manualGrade : score.grade
+                    newAlerts.push({
+                      id: Date.now() + Math.random(),
+                      examTitle: score.examTitle,
+                      grade: finalGrade,
+                      factor: score.factor || 0,
+                      scoreId: score.id
+                    })
+                  }
+                })
+                return newAlerts
+              })
+            }
+          }
         } catch (err) {
           console.error('Failed to fetch scores:', err)
         }
+      } else {
+        hasFetchedScoresRef.current = false
       }
     }
     fetchScores()
   }, [user, dataMode])
+
+  // Poll scores periodically for student to check if teacher published marks
+  useEffect(() => {
+    if (!user || user.role !== 'student') return
+
+    console.log(`[DEBUG] Initializing mark-publishing polling for student "${user.username}" (ID: ${user.id})`)
+
+    const intervalId = setInterval(async () => {
+      try {
+        console.log('[DEBUG] Student polling latest scores from server...')
+        const latestScores = await scoreService.getScores(user.id, user.role, user.username)
+        console.log('[DEBUG] Fetched scores:', latestScores)
+        
+        if (hasFetchedScoresRef.current) {
+          setStudentResults((prevResults) => {
+            console.log('[DEBUG] Comparing latest scores against previous scores:', prevResults)
+            const newlyPublished = latestScores.filter(newScore => {
+              const oldScore = prevResults.find(r => r.id === newScore.id)
+              const isNowPublished = newScore.isPublished !== false
+              // Newly published means isPublished went from false to true
+              const wasOldPublished = oldScore ? (oldScore.isPublished !== false) : false
+              
+              // Also check if already marked as seen in localStorage
+              const seenIds = JSON.parse(localStorage.getItem('seenPublishedScores') || '[]')
+              const isSeen = seenIds.includes(newScore.id)
+              
+              console.log(`[DEBUG] Exam "${newScore.examTitle}" (Score ID ${newScore.id}): wasPublished=${wasOldPublished} -> isPublished=${isNowPublished}, isSeen=${isSeen}`)
+              return isNowPublished && !wasOldPublished && !isSeen
+            })
+
+            if (newlyPublished.length > 0) {
+              console.log('[DEBUG] Found newly published scores!', newlyPublished)
+              newlyPublished.forEach(score => {
+                const finalGrade = score.manualGrade !== null && score.manualGrade !== undefined ? score.manualGrade : score.grade
+                const totalGrade = Math.min(100, finalGrade + (score.factor || 0))
+                
+                // Alert the user via NotifyService (browser pop-up)
+                NotifyService.success(`New marks published for: "${score.examTitle}"! Grade: ${totalGrade}%`)
+
+                setPublishAlerts(prevAlerts => {
+                  // Avoid duplicate alerts for the same score ID
+                  if (prevAlerts.some(a => a.scoreId === score.id)) return prevAlerts
+                  return [
+                    ...prevAlerts,
+                    {
+                      id: Date.now() + Math.random(),
+                      examTitle: score.examTitle,
+                      grade: finalGrade,
+                      factor: score.factor || 0,
+                      scoreId: score.id
+                    }
+                  ]
+                })
+              })
+            }
+            return latestScores
+          })
+        } else {
+          console.log('[DEBUG] Initial score state stored, starting transition tracking from now on.')
+          setStudentResults(latestScores)
+          hasFetchedScoresRef.current = true
+        }
+      } catch (err) {
+        console.error('[DEBUG] Failed to poll scores:', err)
+      }
+    }, 4000) // Poll every 4 seconds
+
+    return () => {
+      console.log(`[DEBUG] Cleaning up mark-publishing polling for student "${user.username}"`)
+      clearInterval(intervalId)
+    }
+  }, [user])
 
   // טעינת פידבקים מהשרת בעת התחברות משתמש
   useEffect(() => {
@@ -104,6 +212,27 @@ function App() {
     } catch (err) {
       console.error('Failed to acknowledge feedback:', err)
     }
+  }
+
+  // Dismiss marks publication alert and store in localStorage to avoid showing it again
+  const handleDismissPublishAlert = (alertId, scoreId) => {
+    const seenIds = JSON.parse(localStorage.getItem('seenPublishedScores') || '[]')
+    if (!seenIds.includes(scoreId)) {
+      seenIds.push(scoreId)
+      localStorage.setItem('seenPublishedScores', JSON.stringify(seenIds))
+    }
+    setPublishAlerts((prev) => prev.filter((a) => a.id !== alertId))
+  }
+
+  // View details from marks publication alert and mark as seen
+  const handleViewPublishAlertDetails = (alertId, scoreId) => {
+    const seenIds = JSON.parse(localStorage.getItem('seenPublishedScores') || '[]')
+    if (!seenIds.includes(scoreId)) {
+      seenIds.push(scoreId)
+      localStorage.setItem('seenPublishedScores', JSON.stringify(seenIds))
+    }
+    setActivePage('results')
+    setPublishAlerts((prev) => prev.filter((a) => a.id !== alertId))
   }
 
   // התחברות - קריאה ל-authService שמנתב ל-Server או ל-Mock לפי המצב
@@ -146,6 +275,8 @@ function App() {
   const handleLogout = () => {
     setUser(null)
     setFeedbacks([])
+    setPublishAlerts([])
+    hasFetchedScoresRef.current = false
     StorageService.remove('user')
     setAuthMode('login')
     setActivePage('teacherDashboard')
@@ -202,6 +333,7 @@ function App() {
       {/* התראות מענה של מורה שמופיעות לסטודנט בדשבורד שלו */}
       {user.role === 'student' && (
         <div className="student-alerts-container mb-3 text-start">
+          {/* Feedbacks Alerts */}
           {feedbacks
             .filter((f) => f.teacherResponse && !f.studentAcknowledged)
             .map((f) => (
@@ -223,6 +355,37 @@ function App() {
                 </button>
               </div>
             ))}
+
+          {/* Exam Marks Published Alerts */}
+          {publishAlerts.map((alert) => {
+            const finalGrade = Math.min(100, alert.grade + alert.factor)
+            return (
+              <div key={alert.id} className="alert alert-success alert-dismissible fade show shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-2" role="alert">
+                <div style={{ flex: '1 1 auto' }}>
+                  <h6 className="alert-heading fw-bold mb-1">🎉 New marks published!</h6>
+                  <p className="mb-0 small">
+                    New marks for: <strong>{alert.examTitle}</strong> (Grade: <strong className="text-success">{finalGrade}%</strong>)
+                  </p>
+                </div>
+                <div className="d-flex gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-success btn-sm fw-bold px-3 shadow-sm"
+                    onClick={() => handleViewPublishAlertDetails(alert.id, alert.scoreId)}
+                  >
+                    View Details
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary btn-sm fw-bold px-2 shadow-sm"
+                    onClick={() => handleDismissPublishAlert(alert.id, alert.scoreId)}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 
