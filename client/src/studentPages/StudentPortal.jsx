@@ -1,13 +1,18 @@
 // קומפוננטת פורטל תלמיד משופרת
 // מאפשרת לתלמיד להתחיל מבחן, לבחור תשובות, לעבור בין שאלות, להגיש מבחן ולקבל ציון
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { getExamById, getAllExams } from '../api/examService'
 import { startLiveSession, sendLiveHeartbeat, endLiveSession } from '../api/monitorService'
 
 function StudentPortal({ username, onSaveResult }) {
   // Heartbeat tracking for live exam monitoring
   const [heartbeatIntervalId, setHeartbeatIntervalId] = useState(null)
+
+  // Countdown timer state (in seconds)
+  const [timeRemaining, setTimeRemaining] = useState(null)
+  const timerIntervalRef = useRef(null)
+  const [timerHidden, setTimerHidden] = useState(false)
 
   // שומר את מספר המבחן שהתלמיד מקליד
   const [examId, setExamId] = useState('')
@@ -57,6 +62,52 @@ function StudentPortal({ username, onSaveResult }) {
     }
   }, [heartbeatIntervalId])
 
+  // Stable reference to handleSubmitExam for auto-submit on timer expiry
+  const handleSubmitExamRef = useRef(null)
+
+  // Countdown timer tick effect
+  useEffect(() => {
+    if (timeRemaining === null || isSubmitted) return
+
+    if (timeRemaining <= 0) {
+      // Time is up — auto-submit the exam
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current)
+        timerIntervalRef.current = null
+      }
+      if (handleSubmitExamRef.current) {
+        handleSubmitExamRef.current()
+      }
+      return
+    }
+
+    timerIntervalRef.current = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerIntervalRef.current)
+          timerIntervalRef.current = null
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current)
+        timerIntervalRef.current = null
+      }
+    }
+  }, [timeRemaining, isSubmitted])
+
+  // Format seconds into MM:SS display string
+  const formatTime = (totalSeconds) => {
+    if (totalSeconds === null) return '--:--'
+    const minutes = Math.floor(totalSeconds / 60)
+    const seconds = totalSeconds % 60
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  }
+
   // התחלת מבחן לפי מזהה שהמשתמש מכניס
   const handleStartExam = async () => {
     if (!examId) {
@@ -94,6 +145,13 @@ function StudentPortal({ username, onSaveResult }) {
     setCurrentQuestionIndex(0)
     setSelectedAnswers({})
     setIsSubmitted(false)
+
+    // Initialize countdown timer from exam duration (minutes → seconds)
+    if (data.duration && data.duration > 0) {
+      setTimeRemaining(data.duration * 60)
+    } else {
+      setTimeRemaining(null)
+    }
   }
 
   // יציאה מהמבחן וחזרה למסך ההתחלה של התלמיד
@@ -109,6 +167,12 @@ function StudentPortal({ username, onSaveResult }) {
         console.error('Failed to end monitor session:', err)
       }
     }
+    // Stop countdown timer
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current)
+      timerIntervalRef.current = null
+    }
+    setTimeRemaining(null)
     setExam(null)
     setExamId('')
     setMessage('')
@@ -139,7 +203,7 @@ function StudentPortal({ username, onSaveResult }) {
     }
   }
 
-  const handleSubmitExam = async () => {
+  const handleSubmitExam = useCallback(async () => {
     if (heartbeatIntervalId) {
       clearInterval(heartbeatIntervalId)
       setHeartbeatIntervalId(null)
@@ -174,7 +238,19 @@ function StudentPortal({ username, onSaveResult }) {
       grade: gradePercent,
       answers: selectedAnswers,
     })
-  }
+
+    // Stop countdown timer on submit
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current)
+      timerIntervalRef.current = null
+    }
+    setTimeRemaining(null)
+  }, [exam, selectedAnswers, heartbeatIntervalId, username, onSaveResult])
+
+  // Keep the ref in sync so the timer auto-submit always calls the latest version
+  useEffect(() => {
+    handleSubmitExamRef.current = handleSubmitExam
+  }, [handleSubmitExam])
 
   // מסך התחלה לפני טעינת מבחן
   if (!exam) {
@@ -274,9 +350,35 @@ function StudentPortal({ username, onSaveResult }) {
 
           <h3 className="fw-bold">{exam.title}</h3>
 
-          <div className="d-flex gap-3 text-muted small">
-            <span>May 9, 2026</span>
-            <span>{exam.questions.length} Questions</span>
+          <div className="d-flex justify-content-between align-items-center mt-2">
+            <div className="d-flex gap-3 text-muted small">
+              <span>{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+              <span>{exam.questions.length} Questions</span>
+              {exam.duration && <span>{exam.duration} min</span>}
+            </div>
+
+            {/* Countdown Timer Display */}
+            {timeRemaining !== null && (
+              <div className="d-flex align-items-center gap-2">
+                {!timerHidden && (
+                  <div className={`d-flex align-items-center gap-2 fw-bold ${
+                    timeRemaining <= 60 ? 'text-danger' : timeRemaining <= 300 ? 'text-warning' : 'text-info'
+                  }`} style={{ fontSize: '1.25rem' }}>
+                    <span>⏱️</span>
+                    <span style={{ fontFamily: 'monospace', letterSpacing: '1px' }}>
+                      {formatTime(timeRemaining)}
+                    </span>
+                  </div>
+                )}
+                <button
+                  className="btn btn-sm btn-outline-secondary"
+                  onClick={() => setTimerHidden(!timerHidden)}
+                  title={timerHidden ? 'Show Timer' : 'Hide Timer'}
+                >
+                  {timerHidden ? '👁️ Show' : '🙈 Hide'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
