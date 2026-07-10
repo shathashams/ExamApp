@@ -12,6 +12,7 @@ import StudentResults from './studentPages/StudentResults'
 import TeacherStudentResults from './teacherPages/TeacherStudentResults'
 import LiveMonitor from './teacherPages/LiveMonitor'
 import StorageService from './utils/StorageService'
+import NotifyService from './utils/NotifyService'
 import * as authService from './api/authService'
 import * as scoreService from './api/scoreService'
 import { getFeedbacks, acknowledgeFeedback } from './api/feedbackService'
@@ -78,23 +79,36 @@ function App() {
   useEffect(() => {
     if (!user || user.role !== 'student') return
 
+    console.log(`[DEBUG] Initializing mark-publishing polling for student "${user.username}" (ID: ${user.id})`)
+
     const intervalId = setInterval(async () => {
       try {
+        console.log('[DEBUG] Student polling latest scores from server...')
         const latestScores = await scoreService.getScores(user.id, user.role, user.username)
+        console.log('[DEBUG] Fetched scores:', latestScores)
         
         if (hasFetchedScoresRef.current) {
           setStudentResults((prevResults) => {
+            console.log('[DEBUG] Comparing latest scores against previous scores:', prevResults)
             const newlyPublished = latestScores.filter(newScore => {
               const oldScore = prevResults.find(r => r.id === newScore.id)
               const isNowPublished = newScore.isPublished !== false
-              // Newly published means isPublished went from false to true/undefined-but-active
+              // Newly published means isPublished went from false to true
               const wasOldPublished = oldScore ? (oldScore.isPublished !== false) : false
+              
+              console.log(`[DEBUG] Exam "${newScore.examTitle}" (Score ID ${newScore.id}): wasPublished=${wasOldPublished} -> isPublished=${isNowPublished}`)
               return isNowPublished && !wasOldPublished
             })
 
             if (newlyPublished.length > 0) {
+              console.log('[DEBUG] Found newly published scores!', newlyPublished)
               newlyPublished.forEach(score => {
                 const finalGrade = score.manualGrade !== null && score.manualGrade !== undefined ? score.manualGrade : score.grade
+                const totalGrade = Math.min(100, finalGrade + (score.factor || 0))
+                
+                // Alert the user via NotifyService (browser pop-up)
+                NotifyService.success(`Your marks for "${score.examTitle}" have been published! Grade: ${totalGrade}%`)
+
                 setPublishAlerts(prevAlerts => {
                   // Avoid duplicate alerts for the same score ID
                   if (prevAlerts.some(a => a.scoreId === score.id)) return prevAlerts
@@ -114,15 +128,19 @@ function App() {
             return latestScores
           })
         } else {
+          console.log('[DEBUG] Initial score state stored, starting transition tracking from now on.')
           setStudentResults(latestScores)
           hasFetchedScoresRef.current = true
         }
       } catch (err) {
-        console.error('Failed to poll scores:', err)
+        console.error('[DEBUG] Failed to poll scores:', err)
       }
     }, 4000) // Poll every 4 seconds
 
-    return () => clearInterval(intervalId)
+    return () => {
+      console.log(`[DEBUG] Cleaning up mark-publishing polling for student "${user.username}"`)
+      clearInterval(intervalId)
+    }
   }, [user])
 
   // טעינת פידבקים מהשרת בעת התחברות משתמש
