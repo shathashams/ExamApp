@@ -65,6 +65,34 @@ function App() {
           const scores = await scoreService.getScores(user.id, user.role, user.username)
           setStudentResults(scores)
           hasFetchedScoresRef.current = true
+
+          // Check for unseen published scores for students on initial load/login
+          if (user.role === 'student') {
+            const seenIds = JSON.parse(localStorage.getItem('seenPublishedScores') || '[]')
+            const unseenPublished = scores.filter(score => {
+              const isPublished = score.isPublished !== false
+              return isPublished && !seenIds.includes(score.id)
+            })
+
+            if (unseenPublished.length > 0) {
+              setPublishAlerts(prev => {
+                const newAlerts = [...prev]
+                unseenPublished.forEach(score => {
+                  if (!newAlerts.some(a => a.scoreId === score.id)) {
+                    const finalGrade = score.manualGrade !== null && score.manualGrade !== undefined ? score.manualGrade : score.grade
+                    newAlerts.push({
+                      id: Date.now() + Math.random(),
+                      examTitle: score.examTitle,
+                      grade: finalGrade,
+                      factor: score.factor || 0,
+                      scoreId: score.id
+                    })
+                  }
+                })
+                return newAlerts
+              })
+            }
+          }
         } catch (err) {
           console.error('Failed to fetch scores:', err)
         }
@@ -96,8 +124,12 @@ function App() {
               // Newly published means isPublished went from false to true
               const wasOldPublished = oldScore ? (oldScore.isPublished !== false) : false
               
-              console.log(`[DEBUG] Exam "${newScore.examTitle}" (Score ID ${newScore.id}): wasPublished=${wasOldPublished} -> isPublished=${isNowPublished}`)
-              return isNowPublished && !wasOldPublished
+              // Also check if already marked as seen in localStorage
+              const seenIds = JSON.parse(localStorage.getItem('seenPublishedScores') || '[]')
+              const isSeen = seenIds.includes(newScore.id)
+              
+              console.log(`[DEBUG] Exam "${newScore.examTitle}" (Score ID ${newScore.id}): wasPublished=${wasOldPublished} -> isPublished=${isNowPublished}, isSeen=${isSeen}`)
+              return isNowPublished && !wasOldPublished && !isSeen
             })
 
             if (newlyPublished.length > 0) {
@@ -107,7 +139,7 @@ function App() {
                 const totalGrade = Math.min(100, finalGrade + (score.factor || 0))
                 
                 // Alert the user via NotifyService (browser pop-up)
-                NotifyService.success(`Your marks for "${score.examTitle}" have been published! Grade: ${totalGrade}%`)
+                NotifyService.success(`New marks published for: "${score.examTitle}"! Grade: ${totalGrade}%`)
 
                 setPublishAlerts(prevAlerts => {
                   // Avoid duplicate alerts for the same score ID
@@ -180,6 +212,27 @@ function App() {
     } catch (err) {
       console.error('Failed to acknowledge feedback:', err)
     }
+  }
+
+  // Dismiss marks publication alert and store in localStorage to avoid showing it again
+  const handleDismissPublishAlert = (alertId, scoreId) => {
+    const seenIds = JSON.parse(localStorage.getItem('seenPublishedScores') || '[]')
+    if (!seenIds.includes(scoreId)) {
+      seenIds.push(scoreId)
+      localStorage.setItem('seenPublishedScores', JSON.stringify(seenIds))
+    }
+    setPublishAlerts((prev) => prev.filter((a) => a.id !== alertId))
+  }
+
+  // View details from marks publication alert and mark as seen
+  const handleViewPublishAlertDetails = (alertId, scoreId) => {
+    const seenIds = JSON.parse(localStorage.getItem('seenPublishedScores') || '[]')
+    if (!seenIds.includes(scoreId)) {
+      seenIds.push(scoreId)
+      localStorage.setItem('seenPublishedScores', JSON.stringify(seenIds))
+    }
+    setActivePage('results')
+    setPublishAlerts((prev) => prev.filter((a) => a.id !== alertId))
   }
 
   // התחברות - קריאה ל-authService שמנתב ל-Server או ל-Mock לפי המצב
@@ -309,27 +362,23 @@ function App() {
             return (
               <div key={alert.id} className="alert alert-success alert-dismissible fade show shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-2" role="alert">
                 <div style={{ flex: '1 1 auto' }}>
-                  <h6 className="alert-heading fw-bold mb-1">🎉 Exam Marks Published!</h6>
+                  <h6 className="alert-heading fw-bold mb-1">🎉 New marks published!</h6>
                   <p className="mb-0 small">
-                    Your marks for the exam <strong>{alert.examTitle}</strong> have been published by the lecturer.<br />
-                    Your Grade: <strong className="text-success">{finalGrade}%</strong>
+                    New marks for: <strong>{alert.examTitle}</strong> (Grade: <strong className="text-success">{finalGrade}%</strong>)
                   </p>
                 </div>
                 <div className="d-flex gap-2">
                   <button
                     type="button"
                     className="btn btn-success btn-sm fw-bold px-3 shadow-sm"
-                    onClick={() => {
-                      setActivePage('results')
-                      setPublishAlerts(prev => prev.filter(a => a.id !== alert.id))
-                    }}
+                    onClick={() => handleViewPublishAlertDetails(alert.id, alert.scoreId)}
                   >
                     View Details
                   </button>
                   <button
                     type="button"
                     className="btn btn-outline-secondary btn-sm fw-bold px-2 shadow-sm"
-                    onClick={() => setPublishAlerts(prev => prev.filter(a => a.id !== alert.id))}
+                    onClick={() => handleDismissPublishAlert(alert.id, alert.scoreId)}
                   >
                     Dismiss
                   </button>
