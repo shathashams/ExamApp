@@ -92,6 +92,17 @@ Purpose:
 Manages the message exchange / queries between students and teachers.
 
 
+Module: monitorService
+Functions:
+- startLiveSession(examId, examTitle)
+- sendLiveHeartbeat(examId)
+- endLiveSession(examId)
+- getLiveSessions()
+
+Purpose:
+Handles real-time active student sessions tracking.
+
+
 Component: App
 State:
 - user
@@ -186,3 +197,18 @@ Teacher modal for assessing student answers, adding custom notes, and overriding
 Component: StudentSubmissionReviewModal
 Purpose:
 Student modal to view the correctness of their submitted answers after grades are published.
+
+
+Component: LiveMonitor
+State:
+- sessions
+- loading
+- error
+- lastUpdated
+Main Functions:
+- fetchLiveSessions()
+- getElapsedString()
+- getConnectionStatus()
+
+Purpose:
+Teacher view details displaying live exam test takers, connection status (Online/Away), and start times.

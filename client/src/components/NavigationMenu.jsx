@@ -48,6 +48,16 @@ function NavigationMenu({ user, activePage, onNavigate, onLogout, theme, onToggl
               >
                 Create Exam
               </button>
+              <button
+                className={`btn ${
+                  activePage === 'liveMonitor'
+                    ? 'btn-primary'
+                    : 'btn-outline-primary'
+                }`}
+                onClick={() => onNavigate('liveMonitor')}
+              >
+                Live Monitor 📡
+              </button>
             </>
           )}
 

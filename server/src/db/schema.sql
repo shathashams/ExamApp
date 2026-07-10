@@ -96,3 +96,15 @@ INSERT INTO "studentFeedbacks" ("id", "studentId", "studentName", "examId", "exa
 (2, 3, 'Noor Ahmed', 1, 'Math Exam', 'Excellent exam! Very clear and helpful.', NULL, 'pending', FALSE);
 
 SELECT setval('"studentFeedbacks_id_seq"', (SELECT MAX("id") FROM "studentFeedbacks"));
+
+-- 5. Create Active Sessions Table for Live Monitoring
+CREATE TABLE "activeSessions" (
+    "id" SERIAL PRIMARY KEY,
+    "studentName" VARCHAR(100) NOT NULL,
+    "studentId" INTEGER REFERENCES "users"("id") ON DELETE CASCADE NOT NULL,
+    "examId" INTEGER REFERENCES "exams"("id") ON DELETE CASCADE NOT NULL,
+    "examTitle" VARCHAR(150) NOT NULL,
+    "startTime" TIMESTAMPTZ DEFAULT NOW(),
+    "lastActive" TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT "unique_student_exam_session" UNIQUE ("studentId", "examId")
+);

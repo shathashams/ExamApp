@@ -46,11 +46,30 @@ if (isPgEnabled && connectionString) {
     })
 
     // Verify connection on pool initialization
-    pool.query('SELECT NOW()', (err, res) => {
+    pool.query('SELECT NOW()', async (err, res) => {
         if (err) {
             console.error(`❌ Database connection failed (${dbMode}):`, err.message)
         } else {
             console.log(`✅ Database connected successfully (${dbMode}) at:`, res.rows[0].now)
+            try {
+                // Drop and recreate table on startup to ensure TIMESTAMPTZ column updates are applied
+                await pool.query(`DROP TABLE IF EXISTS "activeSessions" CASCADE`)
+                await pool.query(`
+                    CREATE TABLE "activeSessions" (
+                        "id" SERIAL PRIMARY KEY,
+                        "studentName" VARCHAR(100) NOT NULL,
+                        "studentId" INTEGER REFERENCES "users"("id") ON DELETE CASCADE NOT NULL,
+                        "examId" INTEGER REFERENCES "exams"("id") ON DELETE CASCADE NOT NULL,
+                        "examTitle" VARCHAR(150) NOT NULL,
+                        "startTime" TIMESTAMPTZ DEFAULT NOW(),
+                        "lastActive" TIMESTAMPTZ DEFAULT NOW(),
+                        CONSTRAINT "unique_student_exam_session" UNIQUE ("studentId", "examId")
+                    )
+                `)
+                console.log('✅ Ensure "activeSessions" table exists with TIMESTAMPTZ')
+            } catch (createErr) {
+                console.error('❌ Failed to ensure "activeSessions" table exists:', createErr.message)
+            }
         }
     })
 } else if (dbMode === 'json') {

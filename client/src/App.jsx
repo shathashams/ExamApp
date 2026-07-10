@@ -10,6 +10,7 @@ import CreateExam from './teacherPages/CreateExam'
 import StudentPortal from './studentPages/StudentPortal'
 import StudentResults from './studentPages/StudentResults'
 import TeacherStudentResults from './teacherPages/TeacherStudentResults'
+import LiveMonitor from './teacherPages/LiveMonitor'
 import StorageService from './utils/StorageService'
 import * as authService from './api/authService'
 import * as scoreService from './api/scoreService'
@@ -248,6 +249,11 @@ function App() {
             )
           }}
         />
+      )}
+
+      {/* תצוגת מעקב חי למורה */}
+      {user.role === 'teacher' && activePage === 'liveMonitor' && (
+        <LiveMonitor />
       )}
 
       {/* הצגת פורטל התלמיד ושליחת פונקציה לשמירת הציון */}

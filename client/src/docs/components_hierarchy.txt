@@ -11,8 +11,9 @@ App
 ├── Teacher Pages
 │   ├── TeacherDashboard
 │   ├── CreateExam
-│   └── TeacherStudentResults
-│       └── SubmissionReviewModal (Detailed Review & Override Modal)
+│   ├── TeacherStudentResults
+│   │   └── SubmissionReviewModal (Detailed Review & Override Modal)
+│   └── LiveMonitor (Live Student Activity Stream)
 │
 ├── Student Pages
 │   ├── StudentPortal (Exam Taker View)
@@ -23,7 +24,8 @@ App
 │   ├── authService
 │   ├── examService
 │   ├── scoreService
-│   └── feedbackService
+│   ├── feedbackService
+│   └── monitorService
 │
 └── Reusable Utilities
     ├── ConfigService
@@ -58,3 +60,6 @@ StudentPortal:
 StudentResults:
 - Displays published grades, teacher feedback, and lets students submit custom queries.
 - Spawns StudentSubmissionReviewModal to let students review their answers and see correct options.
+
+LiveMonitor:
+- Displays active student test-taking sessions, elapsed duration, and status heartbeats in real-time.

@@ -30,6 +30,7 @@ Main Features:
   - Bulk Publish: Single-click button ("Publish All Marks") to release all results of an exam to students simultaneously.
   - Grade Factor Curves: Add factor adjustments (positive/negative points) globally to all submissions of a specific exam, with grades capped at 100%.
 - Statistics & Visualization: Features a line-graph chart detailing score distributions and calculates exam grade averages.
+- Real-Time Exam Monitoring: Live dashboard tracking active student test-taking sessions, elapsed times, and connectivity status (Online vs. Away/Offline via client-sent heartbeats).
 
 4. Student Portal
 - Enter Exam: Access any published exam by its unique ID.
