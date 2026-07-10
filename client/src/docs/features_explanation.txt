@@ -19,6 +19,7 @@ Main Features:
 - Create Exam: Author new exams with titles, allowed duration, extra time, permitted materials, and lecturer availability.
 - Exam Management:
   - Add and edit questions.
+  - Question Points: Specify point values for each question individually when creating/managing exams. Shows total exam points to help teachers balance the assessment.
   - Supports multiple question types: Multiple-Choice Questions (MCQs) and Open-Text Questions (auto-graded to 0, requiring manual grading override).
   - Modify existing question text, choices, and answers inline.
   - Publish exams: Toggle exam status from 'draft' to 'published' so students can access them.
@@ -34,9 +35,9 @@ Main Features:
 
 4. Student Portal
 - Enter Exam: Access any published exam by its unique ID.
-- Take Exam: A step-by-step test-taking screen supporting navigation buttons (Next/Previous), progress bar indicators, MCQ radio selection buttons, and textarea boxes for open-text answers.
+- Take Exam: A step-by-step test-taking screen supporting navigation buttons (Next/Previous), progress bar indicators, MCQ radio selection buttons, and textarea boxes for open-text answers. Displays the point value for each question, defaulting to equal distribution for legacy exams.
 - Countdown Timer: A live countdown clock displays remaining time based on the exam duration. Changes color at 5 minutes (yellow) and 1 minute (red) warnings, and auto-submits the exam when time reaches zero.
-- Submit Exam: Submits selected answers securely to the backend database.
+- Submit Exam: Submits selected answers securely to the backend database. Grade calculations automatically incorporate custom question points.
 
 5. Student Results & Review
 - View Grades: Students see their finalized score and written comments once the teacher reviews and publishes the results.

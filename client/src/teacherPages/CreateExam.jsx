@@ -23,6 +23,7 @@ function CreateExam({ onExamCreated }) {
       options: '',
       answer: '',
       type: 'closed',
+      points: 10,
     },
   ])
 
@@ -42,6 +43,7 @@ function CreateExam({ onExamCreated }) {
         options: '',
         answer: '',
         type: 'closed',
+        points: 10,
       },
     ])
   }
@@ -91,6 +93,7 @@ function CreateExam({ onExamCreated }) {
           ? question.options.split(',').map((option) => option.trim())
           : [],
         answer: question.answer,
+        points: Number(question.points) || 0,
       })),
     }
 
@@ -110,6 +113,7 @@ function CreateExam({ onExamCreated }) {
         options: '',
         answer: '',
         type: 'closed',
+        points: 10,
       },
     ])
 
@@ -199,13 +203,20 @@ function CreateExam({ onExamCreated }) {
 
         <hr />
 
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h4 className="mb-0 fw-bold">Exam Questions</h4>
-
-          <button className="btn btn-outline-primary" onClick={handleAddQuestion}>
-            Add Question
-          </button>
-        </div>
+        {(() => {
+          const totalPoints = questions.reduce((sum, q) => sum + (Number(q.points) || 0), 0)
+          return (
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h4 className="mb-0 fw-bold">
+                Exam Questions <span className="badge bg-primary-subtle text-primary ms-2" style={{ fontSize: '0.9rem' }}>Total Points: {totalPoints}</span>
+              </h4>
+    
+              <button className="btn btn-outline-primary" onClick={handleAddQuestion}>
+                Add Question
+              </button>
+            </div>
+          )
+        })()}
 
         {questions.map((question, index) => (
           <div className="card mb-3 border-light shadow-sm" key={index}>
@@ -221,18 +232,33 @@ function CreateExam({ onExamCreated }) {
                 </button>
               </div>
 
-              <div className="mb-3 text-start">
-                <label className="form-label fw-semibold small text-muted">Question Type</label>
-                <select
-                  className="form-select form-select-sm"
-                  value={question.type || 'closed'}
-                  onChange={(e) =>
-                    handleQuestionChange(index, 'type', e.target.value)
-                  }
-                >
-                  <option value="closed">Multiple Choice (Closed Question)</option>
-                  <option value="open">Open Text Question</option>
-                </select>
+              <div className="row g-3 mb-3 text-start">
+                <div className="col-md-8">
+                  <label className="form-label fw-semibold small text-muted">Question Type</label>
+                  <select
+                    className="form-select form-select-sm"
+                    value={question.type || 'closed'}
+                    onChange={(e) =>
+                      handleQuestionChange(index, 'type', e.target.value)
+                    }
+                  >
+                    <option value="closed">Multiple Choice (Closed Question)</option>
+                    <option value="open">Open Text Question</option>
+                  </select>
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label fw-semibold small text-muted">Points</label>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm"
+                    min="0"
+                    placeholder="e.g. 10"
+                    value={question.points !== undefined ? question.points : ''}
+                    onChange={(e) =>
+                      handleQuestionChange(index, 'points', e.target.value)
+                    }
+                  />
+                </div>
               </div>
 
               <div className="mb-3 text-start">

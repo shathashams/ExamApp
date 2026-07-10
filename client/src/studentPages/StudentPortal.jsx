@@ -214,17 +214,23 @@ function StudentPortal({ username, onSaveResult }) {
       console.error('Failed to notify exam end to monitor:', err)
     }
 
-    let correctAnswers = 0
+    let correctAnswersCount = 0
+    let earnedPoints = 0
+    let totalPoints = 0
 
     exam.questions.forEach((question) => {
+      const qPoints = question.points !== undefined && Number(question.points) > 0
+        ? Number(question.points)
+        : (100 / exam.questions.length)
+      
+      totalPoints += qPoints
       if (selectedAnswers[question.id] === question.answer) {
-        correctAnswers += 1
+        correctAnswersCount += 1
+        earnedPoints += qPoints
       }
     })
 
-    const gradePercent = Math.round(
-      (correctAnswers / exam.questions.length) * 100
-    )
+    const gradePercent = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0
 
     setIsSubmitted(true)
 
@@ -233,7 +239,7 @@ function StudentPortal({ username, onSaveResult }) {
       studentName: username,
       examId: exam.id,
       examTitle: exam.title,
-      score: correctAnswers,
+      score: correctAnswersCount,
       totalQuestions: exam.questions.length,
       grade: gradePercent,
       answers: selectedAnswers,
@@ -386,12 +392,18 @@ function StudentPortal({ username, onSaveResult }) {
       {/* הצגת השאלה הנוכחית ואפשרויות התשובה */}
       <div className="card shadow-sm question-card mb-4">
         <div className="card-body p-4">
-          <div className="d-flex align-items-start gap-3 mb-3">
-            <span className="question-number">
-              {currentQuestionIndex + 1}
+          <div className="d-flex justify-content-between align-items-start gap-3 mb-3">
+            <div className="d-flex align-items-start gap-3">
+              <span className="question-number">
+                {currentQuestionIndex + 1}
+              </span>
+              <h5 className="fw-bold mb-0 text-start">{currentQuestion.text}</h5>
+            </div>
+            <span className="badge bg-secondary-subtle text-secondary-emphasis px-2.5 py-1.5 rounded fw-bold" style={{ fontSize: '0.85rem' }}>
+              {currentQuestion.points !== undefined && Number(currentQuestion.points) > 0
+                ? `${currentQuestion.points} Points`
+                : `${Math.round(100 / exam.questions.length)} Points`}
             </span>
-
-            <h5 className="fw-bold mb-0">{currentQuestion.text}</h5>
           </div>
 
           <div className="answer-options">
