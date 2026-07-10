@@ -104,7 +104,7 @@ CREATE TABLE "activeSessions" (
     "studentId" INTEGER REFERENCES "users"("id") ON DELETE CASCADE NOT NULL,
     "examId" INTEGER REFERENCES "exams"("id") ON DELETE CASCADE NOT NULL,
     "examTitle" VARCHAR(150) NOT NULL,
-    "startTime" TIMESTAMP DEFAULT NOW(),
-    "lastActive" TIMESTAMP DEFAULT NOW(),
+    "startTime" TIMESTAMPTZ DEFAULT NOW(),
+    "lastActive" TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT "unique_student_exam_session" UNIQUE ("studentId", "examId")
 );
