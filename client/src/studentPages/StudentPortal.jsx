@@ -12,6 +12,7 @@ function StudentPortal({ username, onSaveResult }) {
   // Countdown timer state (in seconds)
   const [timeRemaining, setTimeRemaining] = useState(null)
   const timerIntervalRef = useRef(null)
+  const [timerHidden, setTimerHidden] = useState(false)
 
   // שומר את מספר המבחן שהתלמיד מקליד
   const [examId, setExamId] = useState('')
@@ -358,13 +359,24 @@ function StudentPortal({ username, onSaveResult }) {
 
             {/* Countdown Timer Display */}
             {timeRemaining !== null && (
-              <div className={`d-flex align-items-center gap-2 fw-bold ${
-                timeRemaining <= 60 ? 'text-danger' : timeRemaining <= 300 ? 'text-warning' : 'text-info'
-              }`} style={{ fontSize: '1.25rem' }}>
-                <span>⏱️</span>
-                <span style={{ fontFamily: 'monospace', letterSpacing: '1px' }}>
-                  {formatTime(timeRemaining)}
-                </span>
+              <div className="d-flex align-items-center gap-2">
+                {!timerHidden && (
+                  <div className={`d-flex align-items-center gap-2 fw-bold ${
+                    timeRemaining <= 60 ? 'text-danger' : timeRemaining <= 300 ? 'text-warning' : 'text-info'
+                  }`} style={{ fontSize: '1.25rem' }}>
+                    <span>⏱️</span>
+                    <span style={{ fontFamily: 'monospace', letterSpacing: '1px' }}>
+                      {formatTime(timeRemaining)}
+                    </span>
+                  </div>
+                )}
+                <button
+                  className="btn btn-sm btn-outline-secondary"
+                  onClick={() => setTimerHidden(!timerHidden)}
+                  title={timerHidden ? 'Show Timer' : 'Hide Timer'}
+                >
+                  {timerHidden ? '👁️ Show' : '🙈 Hide'}
+                </button>
               </div>
             )}
           </div>
