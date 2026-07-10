@@ -42,6 +42,7 @@ Main Features:
 - View Grades: Students see their finalized score and written comments once the teacher reviews and publishes the results.
 - Review Answers: Click "View Details" to open a detailed modal displaying the correctness of their submitted answers, reference answers, and options.
 - Feedback & Query Form: Ask questions or submit comments directly to the teacher.
+- Publishing Alerts: Real-time alert notifications warn students immediately when the lecturer publishes their exam marks, allowing them to view details with a single click.
 
 6. Navigation Menu
 - Dynamic menu adjusts layout based on whether the logged-in user is a Teacher or a Student.

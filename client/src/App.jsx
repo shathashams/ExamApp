@@ -1,7 +1,7 @@
 // הקומפוננטה הראשית של האפליקציה
 // אחראית על ניהול התחברות, הרשמה, ניווט בין דפים והצגת מסך לפי תפקיד המשתמש
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import NavigationMenu from './components/NavigationMenu'
@@ -42,6 +42,10 @@ function App() {
   // שומר את פידבקי/שאלות התלמידים למורה והמענים להם
   const [feedbacks, setFeedbacks] = useState([])
 
+  // Alerts for newly published marks/scores
+  const [publishAlerts, setPublishAlerts] = useState([])
+  const hasFetchedScoresRef = useRef(false)
+
   // החלת ערכת הנושא בעת שינוי
   useEffect(() => {
     if (theme === 'dark') {
@@ -59,13 +63,67 @@ function App() {
         try {
           const scores = await scoreService.getScores(user.id, user.role, user.username)
           setStudentResults(scores)
+          hasFetchedScoresRef.current = true
         } catch (err) {
           console.error('Failed to fetch scores:', err)
         }
+      } else {
+        hasFetchedScoresRef.current = false
       }
     }
     fetchScores()
   }, [user, dataMode])
+
+  // Poll scores periodically for student to check if teacher published marks
+  useEffect(() => {
+    if (!user || user.role !== 'student') return
+
+    const intervalId = setInterval(async () => {
+      try {
+        const latestScores = await scoreService.getScores(user.id, user.role, user.username)
+        
+        if (hasFetchedScoresRef.current) {
+          setStudentResults((prevResults) => {
+            const newlyPublished = latestScores.filter(newScore => {
+              const oldScore = prevResults.find(r => r.id === newScore.id)
+              const isNowPublished = newScore.isPublished !== false
+              // Newly published means isPublished went from false to true/undefined-but-active
+              const wasOldPublished = oldScore ? (oldScore.isPublished !== false) : false
+              return isNowPublished && !wasOldPublished
+            })
+
+            if (newlyPublished.length > 0) {
+              newlyPublished.forEach(score => {
+                const finalGrade = score.manualGrade !== null && score.manualGrade !== undefined ? score.manualGrade : score.grade
+                setPublishAlerts(prevAlerts => {
+                  // Avoid duplicate alerts for the same score ID
+                  if (prevAlerts.some(a => a.scoreId === score.id)) return prevAlerts
+                  return [
+                    ...prevAlerts,
+                    {
+                      id: Date.now() + Math.random(),
+                      examTitle: score.examTitle,
+                      grade: finalGrade,
+                      factor: score.factor || 0,
+                      scoreId: score.id
+                    }
+                  ]
+                })
+              })
+            }
+            return latestScores
+          })
+        } else {
+          setStudentResults(latestScores)
+          hasFetchedScoresRef.current = true
+        }
+      } catch (err) {
+        console.error('Failed to poll scores:', err)
+      }
+    }, 4000) // Poll every 4 seconds
+
+    return () => clearInterval(intervalId)
+  }, [user])
 
   // טעינת פידבקים מהשרת בעת התחברות משתמש
   useEffect(() => {
@@ -146,6 +204,8 @@ function App() {
   const handleLogout = () => {
     setUser(null)
     setFeedbacks([])
+    setPublishAlerts([])
+    hasFetchedScoresRef.current = false
     StorageService.remove('user')
     setAuthMode('login')
     setActivePage('teacherDashboard')
@@ -202,6 +262,7 @@ function App() {
       {/* התראות מענה של מורה שמופיעות לסטודנט בדשבורד שלו */}
       {user.role === 'student' && (
         <div className="student-alerts-container mb-3 text-start">
+          {/* Feedbacks Alerts */}
           {feedbacks
             .filter((f) => f.teacherResponse && !f.studentAcknowledged)
             .map((f) => (
@@ -223,6 +284,41 @@ function App() {
                 </button>
               </div>
             ))}
+
+          {/* Exam Marks Published Alerts */}
+          {publishAlerts.map((alert) => {
+            const finalGrade = Math.min(100, alert.grade + alert.factor)
+            return (
+              <div key={alert.id} className="alert alert-success alert-dismissible fade show shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-2" role="alert">
+                <div style={{ flex: '1 1 auto' }}>
+                  <h6 className="alert-heading fw-bold mb-1">🎉 Exam Marks Published!</h6>
+                  <p className="mb-0 small">
+                    Your marks for the exam <strong>{alert.examTitle}</strong> have been published by the lecturer.<br />
+                    Your Grade: <strong className="text-success">{finalGrade}%</strong>
+                  </p>
+                </div>
+                <div className="d-flex gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-success btn-sm fw-bold px-3 shadow-sm"
+                    onClick={() => {
+                      setActivePage('results')
+                      setPublishAlerts(prev => prev.filter(a => a.id !== alert.id))
+                    }}
+                  >
+                    View Details
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary btn-sm fw-bold px-2 shadow-sm"
+                    onClick={() => setPublishAlerts(prev => prev.filter(a => a.id !== alert.id))}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 
