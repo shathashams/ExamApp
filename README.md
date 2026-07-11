@@ -132,7 +132,7 @@ graph TD
 erDiagram
     USERS {
         int id PK
-        string username UNIQUE
+        string username
         string password
         string fullName
         string role
