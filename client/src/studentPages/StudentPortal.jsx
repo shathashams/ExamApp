@@ -5,7 +5,14 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { getExamById, getAllExams } from '../api/examService'
 import { startLiveSession, sendLiveHeartbeat, endLiveSession } from '../api/monitorService'
 
-function StudentPortal({ username, onSaveResult }) {
+function StudentPortal({ username, onSaveResult, setIsExamActive }) {
+  // Sync active exam taking state to parent container
+  useEffect(() => {
+    if (setIsExamActive) {
+      setIsExamActive(exam !== null && !isSubmitted)
+    }
+  }, [exam, isSubmitted, setIsExamActive])
+
   // Heartbeat tracking for live exam monitoring
   const [heartbeatIntervalId, setHeartbeatIntervalId] = useState(null)
 
@@ -251,7 +258,7 @@ function StudentPortal({ username, onSaveResult }) {
       timerIntervalRef.current = null
     }
     setTimeRemaining(null)
-  }, [exam, selectedAnswers, heartbeatIntervalId, username, onSaveResult])
+  }, [exam, selectedAnswers, heartbeatIntervalId, username, onSaveResult, setHeartbeatIntervalId, setIsSubmitted, setTimeRemaining])
 
   // Keep the ref in sync so the timer auto-submit always calls the latest version
   useEffect(() => {

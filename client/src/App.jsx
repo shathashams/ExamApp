@@ -30,6 +30,9 @@ function App() {
     return savedUser && savedUser.role === 'student' ? 'studentPortal' : 'teacherDashboard'
   })
 
+  // שומר האם התלמיד נמצא כרגע במהלך מבחן פעיל
+  const [isExamActive, setIsExamActive] = useState(false)
+
   // מצב מקור הנתונים קבוע כעת ל-SERVER
   const dataMode = 'SERVER'
 
@@ -323,6 +326,7 @@ function App() {
         onLogout={handleLogout}
         theme={theme}
         onToggleTheme={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+        disabled={isExamActive}
       />
 
       {/* התראות מענה של מורה שמופיעות לסטודנט בדשבורד שלו */}
@@ -419,6 +423,7 @@ function App() {
         <StudentPortal
           username={user.username}
           onSaveResult={handleSaveResult}
+          setIsExamActive={setIsExamActive}
         />
       )}
 
