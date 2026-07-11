@@ -133,19 +133,19 @@ erDiagram
     USERS {
         int id PK
         string username UNIQUE
-        string password "Hashed / Plain fallback"
+        string password
         string fullName
-        string role "teacher | student"
+        string role
     }
     EXAMS {
         int id PK
         string title
-        string status "draft | published"
+        string status
         int duration
         int extraTime
         string allowedMaterials
         string teacherAvailable
-        jsonb questions "Includes individual question points"
+        jsonb questions
         int teacherId FK
     }
     STUDENT_SCORES {
@@ -156,7 +156,7 @@ erDiagram
         string examTitle
         int score
         int totalQuestions
-        int grade "Calculated using question points"
+        int grade
         string date
         jsonb answers
         string feedback
@@ -172,7 +172,7 @@ erDiagram
         string examTitle
         string message
         string teacherResponse
-        string status "pending | responded"
+        string status
         boolean studentAcknowledged
         timestamp createdAt
     }
@@ -183,7 +183,7 @@ erDiagram
         int examId FK
         string examTitle
         timestamp startTime
-        timestamp lastActive "Updated via 10s client heartbeats"
+        timestamp lastActive
     }
 
     USERS ||--o{ EXAMS : "creates"
