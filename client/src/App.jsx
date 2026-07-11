@@ -30,6 +30,9 @@ function App() {
     return savedUser && savedUser.role === 'student' ? 'studentPortal' : 'teacherDashboard'
   })
 
+  // שומר האם התלמיד נמצא כרגע במהלך מבחן פעיל
+  const [isExamActive, setIsExamActive] = useState(false)
+
   // מצב מקור הנתונים קבוע כעת ל-SERVER
   const dataMode = 'SERVER'
 
@@ -315,15 +318,17 @@ function App() {
 
   return (
     <div className="container mt-4">
-      {/* תפריט ניווט שמציג כפתורים לפי תפקיד המשתמש */}
-      <NavigationMenu
-        user={user}
-        activePage={activePage}
-        onNavigate={setActivePage}
-        onLogout={handleLogout}
-        theme={theme}
-        onToggleTheme={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-      />
+      {/* תפריט ניווט שמציג כפתורים לפי תפקיד המשתמש - מוסתר בזמן מבחן פעיל */}
+      {!isExamActive && (
+        <NavigationMenu
+          user={user}
+          activePage={activePage}
+          onNavigate={setActivePage}
+          onLogout={handleLogout}
+          theme={theme}
+          onToggleTheme={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+        />
+      )}
 
       {/* התראות מענה של מורה שמופיעות לסטודנט בדשבורד שלו */}
       {user.role === 'student' && (
@@ -419,6 +424,7 @@ function App() {
         <StudentPortal
           username={user.username}
           onSaveResult={handleSaveResult}
+          setIsExamActive={setIsExamActive}
         />
       )}
 

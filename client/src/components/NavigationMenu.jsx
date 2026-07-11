@@ -1,7 +1,7 @@
 // קומפוננטת תפריט ניווט ראשי
 // מציגה את שם המערכת, המשתמש המחובר, התפקיד וכפתורי ניווט לפי סוג המשתמש
 
-function NavigationMenu({ user, activePage, onNavigate, onLogout, theme, onToggleTheme }) {
+function NavigationMenu({ user, activePage, onNavigate, onLogout, theme, onToggleTheme, disabled }) {
   return (
     <div className="app-header mb-4">
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -32,7 +32,7 @@ function NavigationMenu({ user, activePage, onNavigate, onLogout, theme, onToggl
                 className={`btn ${
                   activePage === 'teacherStudentResults'
                   ? 'btn-primary'
-                 : 'btn-outline-primary'
+                  : 'btn-outline-primary'
                }`}
                onClick={() => onNavigate('teacherStudentResults')}
              >
@@ -71,6 +71,7 @@ function NavigationMenu({ user, activePage, onNavigate, onLogout, theme, onToggl
                     : 'btn-outline-success'
                 }`}
                 onClick={() => onNavigate('studentPortal')}
+                disabled={disabled}
               >
                 Student Portal
               </button>
@@ -82,6 +83,7 @@ function NavigationMenu({ user, activePage, onNavigate, onLogout, theme, onToggl
                     : 'btn-outline-success'
                 }`}
                 onClick={() => onNavigate('results')}
+                disabled={disabled}
               >
                 Results
               </button>
@@ -93,6 +95,7 @@ function NavigationMenu({ user, activePage, onNavigate, onLogout, theme, onToggl
             type="button"
             className="btn btn-outline-secondary d-flex align-items-center justify-content-center p-0 me-1"
             onClick={onToggleTheme}
+            disabled={disabled}
             title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
             style={{ borderRadius: '50%', width: '38px', height: '38px', border: '1.5px solid #cbd5e1', flexShrink: 0 }}
           >
@@ -100,7 +103,7 @@ function NavigationMenu({ user, activePage, onNavigate, onLogout, theme, onToggl
           </button>
 
           {/* כפתור יציאה מהמערכת */}
-          <button className="btn btn-outline-danger" onClick={onLogout}>
+          <button className="btn btn-outline-danger" onClick={onLogout} disabled={disabled}>
             Logout
           </button>
         </div>
