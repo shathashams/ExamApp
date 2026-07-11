@@ -66,6 +66,66 @@ graph TD
 
 ---
 
+## 📖 Detailed Module Explanations
+
+### 1. Security & Authentication (Login & Register)
+* **Register:** Students can sign up with a unique username, full name, and password. The system applies a validation guard preventing students from registering as teachers.
+* **Bcrypt Password Security:** Password inputs are encrypted using standard salt hashing (`bcrypt`) in the controller before database save transactions.
+* **JWT Authentication:** Successful logins yield a signed stateless token containing the user context. This token is stored on the client via `localStorage` and sent with subsequent requests inside the HTTP `Authorization` header.
+* **Role Guards:** Route-level middleware (`verifyToken`, `verifyTeacher`) validates headers, block student access to grading or monitoring endpoints, and returns standard HTTP `403 Forbidden` response statuses.
+
+### 2. Teacher Dashboard
+* **Exam Workspace:** Teachers see all exams they created, showing their IDs, titles, durations, and publish status.
+* **Status Toggles:** Allows switching an exam status from `draft` (unseen by students) to `published` (visible on the student exam portal).
+* **Feedback Notifications:** Displays notifications if a student leaves feedback or asks a question about an exam.
+
+### 3. Create & Edit Exam
+* **Exam Form Creator:** Configures metadata (exam title, duration in minutes, extra time, allowed materials, lecturer availability).
+* **Inline Questions Builder:** Add, modify, or remove questions dynamically:
+  - **Question Type Toggle:** Supports Multiple-Choice Questions (MCQ / Closed) or Open-Text Questions.
+  - **Points Configuration:** Set custom weights for each question. The builder calculates the cumulative sum and displays a **Total Points** counter so teachers can balance the assessment weights.
+  - **Answers Configuration:** Multiple choices are entered as comma-separated values. Correct answers (for closed questions) or reference answers/keywords (for open questions) are saved.
+* **Inline Editing:** Teachers can update metadata or question properties directly, saving edits directly to the JSONB array structure.
+
+### 4. Grade Factor Curve Engine
+* **The Adjustment Tool:** Allows teachers to apply a positive or negative score offset (Factor) globally to all student submissions of a selected exam.
+* **Mathematics:** The factor is applied dynamically on client display and backend services:
+  $$\text{Final Grade} = \min(100, \text{Grade Percentage} + \text{Factor Value})$$
+  *(The final grade is automatically capped at 100% to prevent values exceeding 100).*
+
+### 5. Bulk Publish Marks
+* **Release Flow:** When grading is complete, the teacher can click **"Publish All Marks"** for a specific exam.
+* **Database Action:** Changes the database state of all associated score records from `"isPublished" = FALSE` to `TRUE`.
+* **Real-time Alert Broadcast:** Instantly pushes notifications to online students, alerting them of their newly released scores.
+
+### 6. Live Exam Monitoring
+* **Student Heartbeats:** Active exam sessions send periodic ping requests to `/api/monitor/heartbeat` every **10 seconds**.
+* **Teacher Monitor Polling:** The teacher dashboard polls `/api/monitor` every **3 seconds** to retrieve the list of active sessions for their exams.
+* **Offline Detection:** Computes student activity times:
+  - If a student's `lastActive` timestamp is within the last 15 seconds, status is `Online 🟢`.
+  - If between 15 and 25 seconds, status switches to `Away 🟡`.
+  - If older than 25 seconds (e.g. tab closed or network drop), status is `Disconnected 🔴`.
+
+### 7. Performance Analytics & Score Graphs
+* **Metrics Dashboard:** Calculates the **Class Average Grade**, standard deviation, total submissions, and score ranges.
+* **Grade Distribution Graph:** Renders a clean line-graph/bar chart displaying the count of students inside different grade intervals (e.g. 0-54, 55-64, 65-74, 75-84, 85-100).
+* **Data Source:** Pulls dynamically from the `studentScores` table, automatically updating as new submissions are graded.
+
+### 8. Student Portal & Countdown Timer
+* **Exam Entry:** Entering a valid Exam ID loads the exam details, rules, allowed materials, and duration.
+* **Stress-Free Countdown Timer:**
+  - Converts duration to seconds and counts down in the background.
+  - Changes colors dynamically to catch attention: **Blue** (>5 min), **Yellow** (1-5 min), **Red** (<1 min).
+  - Features a **Hide/Show** button, allowing anxious students to hide the clock.
+  - **Auto-Submit:** Triggers a callback that submits the student's selected answers immediately when the timer reaches `00:00`.
+
+### 9. Student Results Review
+* **Published Grades Inbox:** Students can view their final grade, date of submission, applied factor, and teacher's written remarks.
+* **Detailed Answer Review:** Click "View Details" to open a modal that shows each question, the student's selected answer, the correct answer, and correct/incorrect status badges.
+* **Feedback Queries:** Students can submit feedback or queries about their grades directly to the teacher from this view.
+
+---
+
 ## 🗄️ Database Entity Relationship (ER) Diagram
 
 ```mermaid
