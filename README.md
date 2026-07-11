@@ -120,6 +120,7 @@ graph TD
 
 ### 8. Student Portal & Countdown Timer
 * **Exam Entry:** Entering a valid Exam ID loads the exam details, rules, allowed materials, and duration.
+* **Active Exam UI Lock (Navigation Guard):** When a student is actively taking an exam, the main navigation menu (Navbar) is completely hidden from the viewport. This isolates the testing interface, preventing students from accidentally clicking logout or navigating away from the assessment. The navbar automatically reappears once the exam is submitted or exited.
 * **Stress-Free Countdown Timer:**
   - Converts duration to seconds and counts down in the background.
   - Changes colors dynamically to catch attention: **Blue** (>5 min), **Yellow** (1-5 min), **Red** (<1 min).
