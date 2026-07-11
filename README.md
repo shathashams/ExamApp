@@ -219,6 +219,14 @@ Ensure Docker is running on your machine, then execute the following command at 
 docker compose up -d postgres
 ```
 
+### 1.1 Inspecting the Database (pgAdmin / DBeaver)
+You can inspect or query the running database using **pgAdmin**, **DBeaver**, or any other database manager with the following connection details:
+* **Host:** `localhost`
+* **Port:** `5435` *(internal container port `5432` maps to `5435` on host)*
+* **Maintenance Database:** `exam_app`
+* **Username:** `postgres`
+* **Password:** `postgres`
+
 ### 2. Start Backend Server (`server/`)
 1. Navigate to the server directory:
    ```bash
