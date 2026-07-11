@@ -12,7 +12,6 @@ import StudentResults from './studentPages/StudentResults'
 import TeacherStudentResults from './teacherPages/TeacherStudentResults'
 import LiveMonitor from './teacherPages/LiveMonitor'
 import StorageService from './utils/StorageService'
-import NotifyService from './utils/NotifyService'
 import * as authService from './api/authService'
 import * as scoreService from './api/scoreService'
 import { getFeedbacks, acknowledgeFeedback } from './api/feedbackService'
@@ -136,11 +135,7 @@ function App() {
               console.log('[DEBUG] Found newly published scores!', newlyPublished)
               newlyPublished.forEach(score => {
                 const finalGrade = score.manualGrade !== null && score.manualGrade !== undefined ? score.manualGrade : score.grade
-                const totalGrade = Math.min(100, finalGrade + (score.factor || 0))
                 
-                // Alert the user via NotifyService (browser pop-up)
-                NotifyService.success(`New marks published for: "${score.examTitle}"! Grade: ${totalGrade}%`)
-
                 setPublishAlerts(prevAlerts => {
                   // Avoid duplicate alerts for the same score ID
                   if (prevAlerts.some(a => a.scoreId === score.id)) return prevAlerts
