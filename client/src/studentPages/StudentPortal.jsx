@@ -6,13 +6,6 @@ import { getExamById, getAllExams } from '../api/examService'
 import { startLiveSession, sendLiveHeartbeat, endLiveSession } from '../api/monitorService'
 
 function StudentPortal({ username, onSaveResult, setIsExamActive }) {
-  // Sync active exam taking state to parent container
-  useEffect(() => {
-    if (setIsExamActive) {
-      setIsExamActive(exam !== null && !isSubmitted)
-    }
-  }, [exam, isSubmitted, setIsExamActive])
-
   // Heartbeat tracking for live exam monitoring
   const [heartbeatIntervalId, setHeartbeatIntervalId] = useState(null)
 
@@ -40,6 +33,13 @@ function StudentPortal({ username, onSaveResult, setIsExamActive }) {
 
   // שומר את כל המבחנים הזמינים מהמאגר
   const [availableExams, setAvailableExams] = useState([])
+
+  // Sync active exam taking state to parent container
+  useEffect(() => {
+    if (setIsExamActive) {
+      setIsExamActive(exam !== null && !isSubmitted)
+    }
+  }, [exam, isSubmitted, setIsExamActive])
 
   // טעינת רשימת המבחנים הזמינים כדי להציג את המזהים שלהם
   useEffect(() => {

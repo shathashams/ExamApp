@@ -318,16 +318,17 @@ function App() {
 
   return (
     <div className="container mt-4">
-      {/* תפריט ניווט שמציג כפתורים לפי תפקיד המשתמש */}
-      <NavigationMenu
-        user={user}
-        activePage={activePage}
-        onNavigate={setActivePage}
-        onLogout={handleLogout}
-        theme={theme}
-        onToggleTheme={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-        disabled={isExamActive}
-      />
+      {/* תפריט ניווט שמציג כפתורים לפי תפקיד המשתמש - מוסתר בזמן מבחן פעיל */}
+      {!isExamActive && (
+        <NavigationMenu
+          user={user}
+          activePage={activePage}
+          onNavigate={setActivePage}
+          onLogout={handleLogout}
+          theme={theme}
+          onToggleTheme={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+        />
+      )}
 
       {/* התראות מענה של מורה שמופיעות לסטודנט בדשבורד שלו */}
       {user.role === 'student' && (
