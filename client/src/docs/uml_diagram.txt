@@ -49,6 +49,14 @@ Purpose:
 Shows bootstrap notification/toast messages to the user.
 
 
+Module: apiClient
+Functions:
+- getAuthHeaders()
+
+Purpose:
+Generates standard authorization headers containing stateless JWT tokens.
+
+
 Module: authService
 Functions:
 - login(username, password, role)
@@ -111,6 +119,8 @@ State:
 - theme
 - studentResults
 - feedbacks
+- isExamActive
+- publishAlerts
 Main Functions:
 - handleLogin()
 - handleRegister()
@@ -212,3 +222,13 @@ Main Functions:
 
 Purpose:
 Teacher view details displaying live exam test takers, connection status (Online/Away), and start times.
+
+
+Component: QuestionReviewCard
+Props:
+- question
+- selectedAnswer
+- questionIndex
+
+Purpose:
+Shared reusable card component that displays a single question's details, the student's answer choice, the correct answer, points, and correctness badges.
