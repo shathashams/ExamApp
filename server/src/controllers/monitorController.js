@@ -37,7 +37,7 @@ class MonitorController {
         try {
             const { id: studentId, role } = req.user
             const { examId } = req.body
-
+            console.log('[DEBUG HEARTBEAT] req.user:', req.user)
             if (role !== 'student') {
                 const err = new Error('Forbidden: Only students can send heartbeats')
                 err.status = 403
@@ -100,7 +100,10 @@ class MonitorController {
             }
 
             const sessions = await monitorService.getAllActiveSessionsForTeacher(teacherId)
-            res.json(sessions)
+            res.json({
+                sessions,
+                serverTime: new Date().toISOString()
+            })
         } catch (error) {
             next(error)
         }

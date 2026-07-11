@@ -1,14 +1,5 @@
 import ConfigService from '../utils/ConfigService'
-import StorageService from '../utils/StorageService'
-
-const getAuthHeaders = () => {
-  const user = StorageService.get('user')
-  const headers = { 'Content-Type': 'application/json' }
-  if (user && user.token) {
-    headers['Authorization'] = `Bearer ${user.token}`
-  }
-  return headers
-}
+import { getAuthHeaders } from './apiClient'
 
 export const getFeedbacks = async () => {
   const response = await fetch(`${ConfigService.getApiBaseUrl()}/feedbacks`, {

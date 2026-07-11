@@ -1,19 +1,11 @@
 import ConfigService from '../utils/ConfigService'
+import { getAuthHeaders } from './apiClient'
 import StorageService from '../utils/StorageService'
 
 const isServerMode = () => ConfigService.isServerMode()
 
 // Local in-memory sessions cache for client-only mock mode
 const mockSessions = []
-
-const getAuthHeaders = () => {
-  const user = StorageService.get('user')
-  const headers = { 'Content-Type': 'application/json' }
-  if (user && user.token) {
-    headers['Authorization'] = `Bearer ${user.token}`
-  }
-  return headers
-}
 
 export const startLiveSession = async (examId, examTitle) => {
   if (isServerMode()) {
