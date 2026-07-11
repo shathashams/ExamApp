@@ -1,0 +1,92 @@
+Main Entities Used by the Database and Views
+
+Entity: User (users table)
+Fields:
+- id (Primary Key)
+- username (Unique)
+- password (Hashed with bcrypt)
+- fullName
+- role ('teacher' | 'student')
+
+Used in:
+- Login
+- Register
+- NavigationMenu
+- JWT Authorization Middleware
+
+
+Entity: Exam (exams table)
+Fields:
+- id (Primary Key)
+- title
+- status ('draft' | 'published')
+- duration (Integer, minutes)
+- extraTime (Integer, minutes)
+- allowedMaterials
+- teacherAvailable
+- questions (JSONB list of Question entities)
+- teacherId (Foreign Key referencing User)
+
+Relationship:
+- One Teacher (User) can create many Exams.
+- One Exam contains a JSON array of many Questions.
+
+
+Entity: Question
+Fields:
+- id
+- text
+- type ('mcq' | 'open')
+- options (Array of strings, empty for open questions)
+- answer (Correct answer string / model reference answer)
+
+
+Entity: StudentResult (studentScores table)
+Fields:
+- id (Primary Key)
+- studentName
+- studentId (Foreign Key referencing User)
+- examId (Foreign Key referencing Exam)
+- examTitle
+- score (Correct answers counter)
+- totalQuestions
+- grade (Calculated automatic percentage)
+- date (yyyy-mm-dd format)
+- answers (JSONB object of key-value student answers)
+- feedback (Text comments from teacher)
+- manualGrade (Integer override)
+- isPublished (Boolean)
+- factor (Integer grade adjustment value)
+
+Relationship:
+- Each StudentResult belongs to one Student (User) and one Exam.
+
+
+Entity: StudentFeedback (studentFeedbacks table)
+Fields:
+- id (Primary Key)
+- studentId (Foreign Key referencing User)
+- studentName
+- examId (Foreign Key referencing Exam)
+- examTitle
+- message (Student query / feedback text)
+- teacherResponse (Response text from teacher)
+- status ('pending' | 'resolved')
+- studentAcknowledged (Boolean alert dismissal status)
+- createdAt (Timestamp)
+
+- Each feedback belongs to one student and one exam.
+
+
+Entity: ActiveSession (activeSessions table)
+Fields:
+- id (Primary Key)
+- studentName
+- studentId (Foreign Key referencing User)
+- examId (Foreign Key referencing Exam)
+- examTitle
+- startTime (Timestamp)
+- lastActive (Timestamp heartbeat tracking)
+
+Relationship:
+- Tracks live test session of a Student (User) for an Exam.

@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  gateway:
+    build: ./gateway
+    container_name: exam_app_gateway_demo
+    ports:
+      - "3000:3000"
+    environment:
+      - ANALYTICS_SERVICE_URL=http://analytics-service:4000
+    depends_on:
+      - analytics-service
+    networks:
+      - microservices-network
+
+  analytics-service:
+    build: ./analytics-service
+    container_name: exam_app_analytics_demo
+    # No ports exposed to host, so it remains private to the network
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge

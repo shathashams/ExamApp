@@ -1,0 +1,61 @@
+Use Case Diagram - E-Test System
+
+Actors:
+1. Teacher (Lecturer)
+2. Student
+
+Teacher Use Cases:
+- Login / Register
+- View list of owned exams & class analytics
+- Create new exams (set durations, allowed materials)
+- Edit exam headers & toggle status (Draft / Published)
+- Add Questions (Specify MCQ or Open-Text question types)
+- Edit existing questions inline
+- View student score distribution line chart & class average
+- Review student answers side-by-side
+- Input manual grade overrides & custom constructive feedback
+- Release grades:
+  - Single-publish toggle per student
+  - Bulk publish ("Publish All Marks") button
+- Apply grade factor curves globally to an exam
+- Reply to student feedback queries
+
+Student Use Cases:
+- Login / Register
+- Access active exams by ID
+- Navigate questions, write text answers, or select MCQ choices
+- Submit exam to the database
+- View score average and finalized grades (once published)
+- Read teacher's custom feedback comments
+- Review submitted answers with correct/reference answers
+- Send queries or feedback to the lecturer regarding specific exams
+- Dismiss notification alerts for teacher responses
+
+Text Diagram:
+
+Teacher
+  │
+  ├── Login / Register
+  ├── Create Exam
+  ├── Manage Exam
+  │     ├── Edit Exam Info & Status
+  │     ├── Add Question (MCQ / Open-Text Toggle)
+  │     └── Edit Question
+  ├── Manage Results
+  │     ├── Review Answers Side-by-Side
+  │     ├── Input Manual Override / Feedback
+  │     ├── Publish Marks (Single / Bulk Publish All)
+  │     └── Apply Grade Factor Curve
+  ├── View Analytics (Average & Distribution Chart)
+  └── Reply to Student Queries
+
+Student
+  │
+  ├── Login / Register
+  ├── Start Exam (via ID Input)
+  │     ├── Answer Questions (MCQ Choice / Open Textarea)
+  │     └── Submit Exam
+  ├── View Results (Grades, Feedback Comments)
+  ├── Review Submitted Answers (Correct/Reference Answers)
+  ├── Submit Query / Feedback
+  └── Dismiss Response Alerts
