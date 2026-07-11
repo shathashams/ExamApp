@@ -1,5 +1,5 @@
 import ConfigService from '../utils/ConfigService'
-import StorageService from '../utils/StorageService'
+import { getAuthHeaders } from './apiClient'
 
 // שירות לניהול ציונים מול השרת או זיכרון מקומי
 const isServerMode = () => ConfigService.isServerMode()
@@ -14,15 +14,6 @@ const mockScores = [
   { id: 6, studentName: 'Adam Saleh', examId: 1, examTitle: 'Math Exam', score: 3, totalQuestions: 3, grade: 100, date: '2026-06-04', isPublished: true },
   { id: 7, studentName: 'Noor Ahmed', examId: 3, examTitle: 'Computer Science Exam', score: 2, totalQuestions: 3, grade: 67, date: '2026-06-04', isPublished: true },
 ]
-
-const getAuthHeaders = () => {
-  const user = StorageService.get('user')
-  const headers = { 'Content-Type': 'application/json' }
-  if (user && user.token) {
-    headers['Authorization'] = `Bearer ${user.token}`
-  }
-  return headers
-}
 
 export const getScores = async (userId, userRole, username) => {
   if (isServerMode()) {

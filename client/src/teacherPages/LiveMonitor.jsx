@@ -6,6 +6,7 @@ import { getLiveSessions } from '../api/monitorService'
 
 function LiveMonitor() {
   const [sessions, setSessions] = useState([])
+  const [serverTime, setServerTime] = useState(new Date().toISOString())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [lastUpdated, setLastUpdated] = useState(new Date())
@@ -14,7 +15,13 @@ function LiveMonitor() {
     if (showLoading) setLoading(true)
     try {
       const activeData = await getLiveSessions()
-      setSessions(activeData || [])
+      if (activeData && activeData.sessions) {
+        setSessions(activeData.sessions)
+        setServerTime(activeData.serverTime)
+      } else {
+        setSessions(activeData || [])
+        setServerTime(new Date().toISOString())
+      }
       setLastUpdated(new Date())
       setError('')
     } catch (err) {
@@ -45,21 +52,21 @@ function LiveMonitor() {
   // Calculate elapsed time (e.g. 5 minutes ago)
   const getElapsedString = (startTimeStr) => {
     const start = new Date(startTimeStr)
-    const now = new Date()
+    const now = new Date(serverTime)
     const diffMs = now - start
     const diffSecs = Math.floor(diffMs / 1000)
     const diffMins = Math.floor(diffSecs / 60)
 
     if (diffSecs < 60) {
-      return `${diffSecs}s ago`
+      return `${Math.max(0, diffSecs)}s ago`
     }
-    return `${diffMins}m ${diffSecs % 60}s ago`
+    return `${diffMins}m ${Math.max(0, diffSecs % 60)}s ago`
   }
 
   // Check connection status (active within last 20 seconds)
   const getConnectionStatus = (lastActiveStr) => {
     const lastActive = new Date(lastActiveStr)
-    const now = new Date()
+    const now = new Date(serverTime)
     const diffSeconds = (now - lastActive) / 1000
     
     if (diffSeconds <= 20) {

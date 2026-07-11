@@ -1,7 +1,7 @@
 // קובץ זה עובד או מול mockDb מקומי או מול Server לפי ConfigService
 import { exams } from './mockDb'
 import ConfigService from '../utils/ConfigService'
-import StorageService from '../utils/StorageService'
+import { getAuthHeaders } from './apiClient'
 
 // פונקציה זו מדמה זמן המתנה של בקשת רשת באמצעות Promise ו-setTimeout
 const delay = (data) => {
@@ -14,16 +14,6 @@ const delay = (data) => {
 
 // בודק האם לעבוד מול Server או מול Mock Client
 const isServerMode = () => ConfigService.isServerMode()
-
-// יצירת כותרות אימות מול השרת עם Bearer token
-const getAuthHeaders = () => {
-  const user = StorageService.get('user')
-  const headers = { 'Content-Type': 'application/json' }
-  if (user && user.token) {
-    headers['Authorization'] = `Bearer ${user.token}`
-  }
-  return headers
-}
 
 // מחזירה את כל המבחנים הקיימים
 export const getAllExams = async () => {

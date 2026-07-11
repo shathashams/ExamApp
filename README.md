@@ -99,12 +99,19 @@ graph TD
 * **Real-time Alert Broadcast:** Instantly pushes notifications to online students, alerting them of their newly released scores.
 
 ### 6. Live Exam Monitoring
-* **Student Heartbeats:** Active exam sessions send periodic ping requests to `/api/monitor/heartbeat` every **10 seconds**.
-* **Teacher Monitor Polling:** The teacher dashboard polls `/api/monitor` every **3 seconds** to retrieve the list of active sessions for their exams.
-* **Offline Detection:** Computes student activity times:
-  - If a student's `lastActive` timestamp is within the last 15 seconds, status is `Online 🟢`.
-  - If between 15 and 25 seconds, status switches to `Away 🟡`.
-  - If older than 25 seconds (e.g. tab closed or network drop), status is `Disconnected 🔴`.
+* **Student Heartbeats:** Active exam sessions send periodic background ping requests to `/api/monitor/heartbeat` every **10 seconds**.
+* **Teacher Monitor Polling:** The teacher dashboard polls `/api/monitor` every **3 seconds** to retrieve active sessions.
+* **Online & Offline Status Calculations:**
+  - **Online 🟢:** Last heartbeat received within the last 20 seconds.
+  - **Away / Disconnected 🟡:** No heartbeat received for > 20 seconds. This is typically triggered if the student closes their browser/tab without exiting the exam, loses internet connection, or if the browser puts the background exam tab to sleep.
+  - *Note:* If the student finishes the exam or clicks **"Exit Exam"**, their session is formally closed and they are removed from the active monitoring list entirely.
+* **Cross-Environment Clock Synchronization:**
+  - Real-time systems often suffer from clock drifts between the database VM/Docker container and the host browser clock.
+  - To prevent false "Away" statuses due to clock desynchronization, the `/api/monitor` API payload includes a `serverTime` timestamp representing the server's database-synchronized time. The client calculates status durations directly against `serverTime`, rendering connection statuses with 100% clock-drift immunity.
+* **⚠️ Multi-Role Testing Guardrails:**
+  - Since authorization tokens are stateless JWTs stored inside the browser's `localStorage`, testing the **Teacher Dashboard** and **Student Portal** simultaneously on the same browser profile (e.g., two regular tabs in Chrome) will result in **token overwrites** (logging in as a teacher overrides the student's stored JWT).
+  - This leads to the server blocking student requests with a `403 Forbidden` error because the student window sends the teacher's new JWT token.
+  - **Correct Testing Workflow:** Multi-role testing must be executed in isolated sessions, such as using an **Incognito / Private Window** for the student and a standard window for the teacher, or using **two different browsers** (e.g., Chrome and Edge).
 
 ### 7. Performance Analytics & Score Graphs
 * **Metrics Dashboard:** Calculates the **Class Average Grade**, standard deviation, total submissions, and score ranges.
