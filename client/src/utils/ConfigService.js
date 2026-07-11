@@ -8,8 +8,8 @@ class ConfigService {
     this.extraTimeMinutes = 15
     this.teacherAvailableMinutes = 20
 
-    // כתובת השרת המקומי
-    this.apiBaseUrl = 'http://localhost:5000/api'
+    // כתובת השרת המקומי או בענן (Render)
+    this.apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
     // מצב ברירת המחדל: SERVER = עבודה מול שרת
     this.defaultDataMode = 'SERVER'
