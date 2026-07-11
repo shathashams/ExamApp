@@ -197,6 +197,32 @@ erDiagram
 
 ---
 
+## 🐋 Database & Containerization Architecture
+
+### 1. Database Choice: PostgreSQL 15
+The system uses **PostgreSQL 15** as its primary persistent database engine. 
+* **Relational Safety:** Enforces strict Foreign Key relations between users, exams, submitted scores, active sessions, and student feedbacks.
+* **JSONB Capabilities:** Utilizes unstructured JSONB columns for the questions of an exam and responses of a student. This provides a hybrid layout, combining the security of SQL constraints with the schema flexibility of a document-oriented database.
+
+### 2. Containerization (Docker Compose)
+To simplify setup and avoid manual installations, the database is fully containerized inside a Docker container using **Docker Compose**:
+* **Image:** Uses `postgres:15-alpine` (a highly lightweight, secure Alpine Linux build).
+* **Port Mapping:** Maps local port `5435` to the internal PostgreSQL port `5432` inside the container. This prevents port conflicts with any pre-existing PostgreSQL installations on your computer.
+* **Data Persistence:** Mounts a named Docker volume (`postgres_data:/var/lib/postgresql/data`) to prevent data loss. All registered accounts, exams, and grades are preserved when the container is stopped or restarted.
+* **Auto-Initialization Schema:** Automatically runs `schema.sql` on the first launch of the container. It does this by mounting the initialization script:
+  `./server/src/db/schema.sql ➔ /docker-entrypoint-initdb.d/init.sql:ro`
+
+### 3. Dynamic Environment Routing (`DB_MODE`)
+The backend is designed with a polymorphic data-service layer. It inspects the `DB_MODE` parameter inside `server/.env` to route data operations dynamically:
+1. **`DB_MODE=json` (Mock Database):** The server redirects operations to read/write from the local JSON file (`server/src/db/db.json`). Useful for offline testing and offline demonstrations.
+2. **`DB_MODE=docker_pg` (Local Container):** Connects to the local PostgreSQL database hosted in the Docker container on port `5435`.
+3. **`DB_MODE=pg` (Cloud Environment):** Connects to a remote, cloud-hosted PostgreSQL instance (such as Render.com). It automatically detects cloud deployments and forces SSL connectivity:
+   ```javascript
+   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+   ```
+
+---
+
 ## 🛠️ Technology Stack & Dependencies
 
 ### Frontend (`client/`)
