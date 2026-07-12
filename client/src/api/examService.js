@@ -1,9 +1,7 @@
-// קובץ זה עובד או מול mockDb מקומי או מול Server לפי ConfigService
 import { exams } from './mockDb'
 import ConfigService from '../utils/ConfigService'
 import { getAuthHeaders } from './apiClient'
 
-// פונקציה זו מדמה זמן המתנה של בקשת רשת באמצעות Promise ו-setTimeout
 const delay = (data) => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -11,8 +9,6 @@ const delay = (data) => {
     }, 500)
   })
 }
-
-// בודק האם לעבוד מול Server או מול Mock Client
 const isServerMode = () => ConfigService.isServerMode()
 
 // מחזירה את כל המבחנים הקיימים

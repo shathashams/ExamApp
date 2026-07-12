@@ -1,12 +1,7 @@
-// שירות אימות משתמשים
-// תומך במצב FULLCLIENT (ללא שרת) ו-SERVER (מול db.json דרך API)
-
 import ConfigService from '../utils/ConfigService'
 
 // בדיקה האם עובדים מול שרת
 const isServerMode = () => ConfigService.isServerMode()
-
-// ── Login ──────────────────────────────────────────────────────
 
 export const login = async (username, password, role) => {
   if (isServerMode()) {
@@ -22,20 +17,17 @@ export const login = async (username, password, role) => {
       throw new Error(data.error || 'Invalid username or password')
     }
 
-    // מיזוג הטוקן עם פרטי המשתמש כדי לשמור ב-localStorage
     return {
       token: data.token,
       ...data.user,
     }
   }
 
-  // FULLCLIENT: קבלת כל שם משתמש + סיסמה, התפקיד מהכפתור
   return { username, role }
 }
 
-// ── Register ───────────────────────────────────────────────────
+//Register
 
-// רשימת משתמשים זמנית בזיכרון עבור מצב FULLCLIENT
 const mockUsers = []
 
 export const register = async (username, password, fullName, role) => {
@@ -59,7 +51,6 @@ export const register = async (username, password, fullName, role) => {
     }
   }
 
-  // FULLCLIENT: בדיקת שם משתמש כפול ברשימה המקומית
   const exists = mockUsers.find((u) => u.username === username)
   if (exists) {
     throw new Error('Username already exists')

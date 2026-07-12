@@ -4,7 +4,6 @@ import { getAuthHeaders } from './apiClient'
 // שירות לניהול ציונים מול השרת או זיכרון מקומי
 const isServerMode = () => ConfigService.isServerMode()
 
-// רשימת ציונים זמנית בזיכרון עבור מצב FULLCLIENT (בדומה ל-mockDb) עם שדה פרסום ציונים
 const mockScores = [
   { id: 1, studentName: 'Noor Ahmed', examId: 1, examTitle: 'Math Exam', score: 3, totalQuestions: 3, grade: 100, date: '2026-06-02', isPublished: true },
   { id: 2, studentName: 'Lina Mansour', examId: 1, examTitle: 'Math Exam', score: 2, totalQuestions: 3, grade: 67, date: '2026-06-02', isPublished: true },
@@ -24,7 +23,6 @@ export const getScores = async (userId, userRole, username) => {
     return response.json()
   }
 
-  // FULLCLIENT: סינון לפי תפקיד מקומי
   if (userRole === 'teacher') {
     return mockScores
   }
@@ -41,8 +39,6 @@ export const saveScore = async (scoreData, userId, userRole, username) => {
     if (!response.ok) throw new Error('Failed to save score on server')
     return response.json()
   }
-
-  // FULLCLIENT: שמירה מקומית בלבד
   const newScore = {
     id: Date.now(),
     studentName: username,
@@ -65,7 +61,6 @@ export const updateScore = async (id, scoreData) => {
     return response.json()
   }
 
-  // FULLCLIENT: שמירה מקומית בלבד
   const scoreIndex = mockScores.findIndex((s) => s.id === Number(id))
   if (scoreIndex !== -1) {
     mockScores[scoreIndex] = {

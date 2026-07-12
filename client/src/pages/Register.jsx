@@ -25,7 +25,6 @@ function Register({ onRegister, onSwitchToLogin }) {
 
     setLoading(true)
     try {
-      // שליחת הפרטים לקומפוננטה הראשית - onRegister כעת async
       await onRegister(username, password, fullName, role)
     } catch (err) {
       setError(err.message)
