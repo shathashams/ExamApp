@@ -69,7 +69,7 @@ app.use(errorHandler)
 
 // הפעלת השרת
 app.listen(PORT, () => {
-    const dbMode = process.env.DB_MODE || 'render_pg'
+    const dbMode = process.env.DB_MODE || 'docker_pg'
     console.log('=========================================')
     console.log(`🚀 E-Test Server running on port ${PORT}`)
     console.log(`📂 Database Mode: ${dbMode}`)

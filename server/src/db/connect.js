@@ -5,7 +5,7 @@ dotenv.config()
 
 const { Pool } = pg
 
-const dbMode = process.env.DB_MODE || 'render_pg'
+const dbMode = process.env.DB_MODE || 'docker_pg'
 
 let connectionString = ''
 let isPgEnabled = true
