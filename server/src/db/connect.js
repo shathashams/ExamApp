@@ -30,7 +30,6 @@ let pool = null
 
 if (isPgEnabled && connectionString) {
     // Enable SSL automatically for Render or production databases.
-    // This prevents ECONNRESET errors when Render requires SSL.
     const shouldUseSsl =
         connectionString.includes('ssl=true') ||
         connectionString.includes('render.com') ||
