@@ -1,4 +1,6 @@
--- Drop tables if they exist
+-- Drop tables in reverse FK dependency order
+-- activeSessions must be first: it holds FKs to exams and users
+DROP TABLE IF EXISTS "activeSessions";
 DROP TABLE IF EXISTS "studentFeedbacks";
 DROP TABLE IF EXISTS "studentScores";
 DROP TABLE IF EXISTS "exams";

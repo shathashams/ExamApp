@@ -5,6 +5,15 @@ dotenv.config()
 
 const { Pool } = pg
 
+// ─── Database Mode ────────────────────────────────────────────────────────────
+// DB_MODE is injected via environment variables.
+//   render_pg  → Render.com cloud PostgreSQL (SSL required, uses DATABASE_URL)
+//   docker_pg  → Local Docker container      (no SSL,     uses DATABASE_URL)
+//   local_pg   → Local PostgreSQL on host    (no SSL,     uses DB_LOCAL_URL)
+//   json        → Local JSON file fallback   (no PostgreSQL)
+//
+// In production: set DB_MODE + DATABASE_URL in Render dashboard env vars.
+// In Docker dev: docker-compose.yml injects DB_MODE + DATABASE_URL automatically.
 const dbMode = process.env.DB_MODE || 'docker_pg'
 
 let connectionString = ''
@@ -12,70 +21,59 @@ let isPgEnabled = true
 
 switch (dbMode) {
     case 'json':
+        // מצב JSON מקומי — ללא PostgreSQL
         isPgEnabled = false
         break
+
     case 'local_pg':
-        connectionString = process.env.DB_LOCAL_URL || 'postgresql://postgres:postgres@localhost:5432/exam_app'
+        // PostgreSQL מותקן ישירות על המחשב המקומי (פורט 5432)
+        connectionString =
+            process.env.DB_LOCAL_URL ||
+            'postgresql://postgres:postgres@localhost:5432/exam_app'
         break
+
     case 'docker_pg':
-        connectionString = process.env.DB_DOCKER_URL || 'postgresql://postgres:postgres@localhost:5435/exam_app'
+        // PostgreSQL בתוך Docker — הכתובת מוזנת מ-docker-compose.yml דרך DATABASE_URL
+        connectionString = process.env.DATABASE_URL || ''
         break
+
     case 'render_pg':
     default:
-        connectionString = process.env.DATABASE_URL
+        // Render.com PostgreSQL — הכתובת מוגדרת ב-Environment Variables של Render
+        connectionString = process.env.DATABASE_URL || ''
         break
 }
 
+// ─── SSL Configuration ────────────────────────────────────────────────────────
+// SSL is required only for Render (and any other cloud/production PostgreSQL).
+// Docker and local PostgreSQL do NOT use SSL.
+const shouldUseSsl = dbMode === 'render_pg' || process.env.NODE_ENV === 'production'
+
+// ─── Create Connection Pool ───────────────────────────────────────────────────
 let pool = null
 
 if (isPgEnabled && connectionString) {
-    // Enable SSL automatically for Render or production databases.
-    // This prevents ECONNRESET errors when Render requires SSL.
-    const shouldUseSsl =
-        connectionString.includes('ssl=true') ||
-        connectionString.includes('render.com') ||
-        process.env.NODE_ENV === 'production'
-
     pool = new Pool({
         connectionString,
         ssl: shouldUseSsl
-            ? {
-                rejectUnauthorized: false,
-            }
+            ? { rejectUnauthorized: false }
             : false,
     })
 
-    // Verify connection on pool initialization
-    pool.query('SELECT NOW()', async (err, res) => {
+    // בדיקת חיבור עם אתחול ה-Pool
+    // Table creation is handled exclusively by schema.sql (via seed.js or Docker init).
+    // Do NOT drop/create tables here — it causes deadlocks when the seeder runs concurrently.
+    pool.query('SELECT NOW()', (err, res) => {
         if (err) {
             console.error(`❌ Database connection failed (${dbMode}):`, err.message)
         } else {
             console.log(`✅ Database connected successfully (${dbMode}) at:`, res.rows[0].now)
-            try {
-                // Drop and recreate table on startup to ensure TIMESTAMPTZ column updates are applied
-                await pool.query(`DROP TABLE IF EXISTS "activeSessions" CASCADE`)
-                await pool.query(`
-                    CREATE TABLE "activeSessions" (
-                        "id" SERIAL PRIMARY KEY,
-                        "studentName" VARCHAR(100) NOT NULL,
-                        "studentId" INTEGER REFERENCES "users"("id") ON DELETE CASCADE NOT NULL,
-                        "examId" INTEGER REFERENCES "exams"("id") ON DELETE CASCADE NOT NULL,
-                        "examTitle" VARCHAR(150) NOT NULL,
-                        "startTime" TIMESTAMPTZ DEFAULT NOW(),
-                        "lastActive" TIMESTAMPTZ DEFAULT NOW(),
-                        CONSTRAINT "unique_student_exam_session" UNIQUE ("studentId", "examId")
-                    )
-                `)
-                console.log('✅ Ensure "activeSessions" table exists with TIMESTAMPTZ')
-            } catch (createErr) {
-                console.error('❌ Failed to ensure "activeSessions" table exists:', createErr.message)
-            }
         }
     })
 } else if (dbMode === 'json') {
     console.log('📂 Database mode: Local JSON file (db.json)')
 } else {
-    console.warn('⚠️ PostgreSQL is configured but no connection string is available. Please check environment variables.')
+    console.warn('⚠️ PostgreSQL configured but DATABASE_URL is not set. Check environment variables.')
 }
 
 export default pool

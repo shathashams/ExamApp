@@ -8,38 +8,23 @@ A decoupled, production-ready Full-Stack web application designed for educationa
 
 ```mermaid
 graph TD
-    subgraph Client Application [React Frontend - Port 5173]
-        Browser[Web Browser / UI]
-        LocalStorage[LocalStorage Storage]
+    subgraph "Local Docker (Lecturer)"
+        Browser[Web Browser :80]
+        ClientNginx[React SPA - Nginx]
+        ServerNode[Express API :5000]
+        DBDocker[(PostgreSQL :5432)]
+        Browser --> ClientNginx
+        ClientNginx -->|VITE_API_URL| ServerNode
+        ServerNode -->|docker_pg| DBDocker
     end
 
-    subgraph Backend Server [Express API - Port 5000]
-        API[Express Router]
-        Middleware[JWT Auth Middleware]
-        Controllers[Controllers]
-        Services[Service Layer PG/JSON]
+    subgraph "Production on Render"
+        FE[Render Static Site]
+        BE[Render Web Service]
+        DBPG[(Render PostgreSQL)]
+        FE -->|VITE_API_URL env var| BE
+        BE -->|render_pg + SSL| DBPG
     end
-
-    subgraph Database Layer
-        PostgreSQL[(PostgreSQL Database - Port 5435)]
-        JSONDB[(db.json - Fallback)]
-    end
-
-    subgraph Standalone Microservices Demo
-        Gateway[Node.js Gateway - Port 3000]
-        Analytics[Analytics Microservice - Port 3001]
-    end
-
-    Browser -->|HTTP + JWT| API
-    Browser <--> LocalStorage
-    API --> Middleware
-    Middleware --> Controllers
-    Controllers --> Services
-    Services -->|PG Mode| PostgreSQL
-    Services -->|JSON Mode| JSONDB
-
-    Browser -->|Event Logs| Gateway
-    Gateway -->|Private Docker Bridge| Analytics
 ```
 
 ---
@@ -72,7 +57,7 @@ graph TD
 * **Register:** Students can sign up with a unique username, full name, and password. The system applies a validation guard preventing students from registering as teachers.
 * **Bcrypt Password Security:** Password inputs are encrypted using standard salt hashing (`bcrypt`) in the controller before database save transactions.
 * **JWT Authentication:** Successful logins yield a signed stateless token containing the user context. This token is stored on the client via `localStorage` and sent with subsequent requests inside the HTTP `Authorization` header.
-* **Role Guards:** Route-level middleware (`verifyToken`, `verifyTeacher`) validates headers, block student access to grading or monitoring endpoints, and returns standard HTTP `403 Forbidden` response statuses.
+* **Role Guards:** Route-level middleware (`verifyToken`, `verifyTeacher`) validates headers, blocks student access to grading or monitoring endpoints, and returns standard HTTP `403 Forbidden` response statuses.
 
 ### 2. Teacher Dashboard
 * **Exam Workspace:** Teachers see all exams they created, showing their IDs, titles, durations, and publish status.
@@ -109,9 +94,8 @@ graph TD
   - Real-time systems often suffer from clock drifts between the database VM/Docker container and the host browser clock.
   - To prevent false "Away" statuses due to clock desynchronization, the `/api/monitor` API payload includes a `serverTime` timestamp representing the server's database-synchronized time. The client calculates status durations directly against `serverTime`, rendering connection statuses with 100% clock-drift immunity.
 * **⚠️ Multi-Role Testing Guardrails:**
-  - Since authorization tokens are stateless JWTs stored inside the browser's `localStorage`, testing the **Teacher Dashboard** and **Student Portal** simultaneously on the same browser profile (e.g., two regular tabs in Chrome) will result in **token overwrites** (logging in as a teacher overrides the student's stored JWT).
-  - This leads to the server blocking student requests with a `403 Forbidden` error because the student window sends the teacher's new JWT token.
-  - **Correct Testing Workflow:** Multi-role testing must be executed in isolated sessions, such as using an **Incognito / Private Window** for the student and a standard window for the teacher, or using **two different browsers** (e.g., Chrome and Edge).
+  - Since authorization tokens are stateless JWTs stored inside the browser's `localStorage`, testing the **Teacher Dashboard** and **Student Portal** simultaneously on the same browser profile will result in **token overwrites**.
+  - **Correct Testing Workflow:** Use an **Incognito / Private Window** for the student and a standard window for the teacher, or use **two different browsers** (e.g., Chrome and Edge).
 
 ### 7. Performance Analytics & Score Graphs
 * **Metrics Dashboard:** Calculates the **Class Average Grade**, standard deviation, total submissions, and score ranges.
@@ -190,8 +174,8 @@ erDiagram
         int studentId FK
         int examId FK
         string examTitle
-        timestamp startTime
-        timestamp lastActive
+        timestamptz startTime
+        timestamptz lastActive
     }
 
     USERS ||--o{ EXAMS : "creates"
@@ -205,113 +189,247 @@ erDiagram
 
 ---
 
-## 🐋 Database & Containerization Architecture
-
-### 1. Database Choice: PostgreSQL 15
-The system uses **PostgreSQL 15** as its primary persistent database engine. 
-* **Relational Safety:** Enforces strict Foreign Key relations between users, exams, submitted scores, active sessions, and student feedbacks.
-* **JSONB Capabilities:** Utilizes unstructured JSONB columns for the questions of an exam and responses of a student. This provides a hybrid layout, combining the security of SQL constraints with the schema flexibility of a document-oriented database.
-
-### 2. Containerization (Docker Compose)
-To simplify setup and avoid manual installations, the database is fully containerized inside a Docker container using **Docker Compose**:
-* **Image:** Uses `postgres:15-alpine` (a highly lightweight, secure Alpine Linux build).
-* **Port Mapping:** Maps local port `5435` to the internal PostgreSQL port `5432` inside the container. This prevents port conflicts with any pre-existing PostgreSQL installations on your computer.
-* **Data Persistence:** Mounts a named Docker volume (`postgres_data:/var/lib/postgresql/data`) to prevent data loss. All registered accounts, exams, and grades are preserved when the container is stopped or restarted.
-* **Auto-Initialization Schema:** Automatically runs `schema.sql` on the first launch of the container. It does this by mounting the initialization script:
-  `./server/src/db/schema.sql ➔ /docker-entrypoint-initdb.d/init.sql:ro`
-
-### 3. Dynamic Environment Routing (`DB_MODE`)
-The backend is designed with a polymorphic data-service layer. It inspects the `DB_MODE` parameter inside `server/.env` to route data operations dynamically:
-1. **`DB_MODE=json` (Mock Database):** The server redirects operations to read/write from the local JSON file (`server/src/db/db.json`). Useful for offline testing and offline demonstrations.
-2. **`DB_MODE=docker_pg` (Local Container):** Connects to the local PostgreSQL database hosted in the Docker container on port `5435`.
-3. **`DB_MODE=pg` (Cloud Environment):** Connects to a remote, cloud-hosted PostgreSQL instance (such as Render.com). It automatically detects cloud deployments and forces SSL connectivity:
-   ```javascript
-   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
-   ```
-
----
-
 ## 🛠️ Technology Stack & Dependencies
 
 ### Frontend (`client/`)
-* **React 19 & Vite:** Render components and fast bundle serving.
-* **Bootstrap 5:** Layout grid system, theme styling, and components.
-* **Services:** Modular service helpers (`ConfigService`, `StorageService`, `NotifyService`).
+* **React 19 & Vite 8:** Component rendering and fast production bundling.
+* **Bootstrap 5:** Layout grid system, theme styling, and UI components.
+* **Nginx:** Serves the production build inside Docker with SPA fallback routing.
+* **Services:** Modular helpers (`ConfigService`, `StorageService`, `NotifyService`, `LoggerService`).
 
 ### Backend (`server/`)
 * **Node.js & Express 5:** RESTful JSON API handling.
-* **pg:** PostgreSQL client pool routing.
-* **bcrypt & jsonwebtoken:** Security, encryption, and token validation.
+* **pg:** PostgreSQL connection pool.
+* **bcrypt & jsonwebtoken:** Password hashing and stateless JWT authentication.
+* **dotenv:** Environment variable loading.
+
+### Infrastructure
+* **Docker & Docker Compose:** Full local stack containerization (postgres, server, client).
+* **PostgreSQL 15 Alpine:** Primary relational database with JSONB support.
+* **Render.com:** Cloud hosting for production (Static Site + Web Service + PostgreSQL).
 
 ---
 
-## 🚀 Installation & Local Startup
+## 🐋 Database & Containerization Architecture
 
-### 1. Start the Database (Docker)
-Ensure Docker is running on your machine, then execute the following command at the root of the project to launch PostgreSQL on port `5435`:
+### 1. Database Choice: PostgreSQL 15
+The system uses **PostgreSQL 15** as its primary persistent database engine.
+* **Relational Safety:** Enforces strict Foreign Key relations between users, exams, submitted scores, active sessions, and student feedbacks.
+* **JSONB Capabilities:** Utilizes unstructured JSONB columns for exam questions and student answers, combining SQL constraint safety with document-store flexibility.
+
+### 2. Full-Stack Docker Compose
+The entire local stack (database, server, client) runs inside Docker. The startup sequence is deterministic:
+
+```
+postgres  (healthy)
+    ↓
+seeder    (runs schema.sql → tables + demo data → exits 0)
+    ↓
+server    (Express API starts, connects to postgres)
+    ↓
+client    (Nginx serves the pre-built React SPA)
+```
+
+* **Seeder service:** Runs `schema.sql` on every fresh startup, dropping and recreating all tables with demo data. This guarantees demo accounts are always available.
+* **Healthcheck:** Postgres uses `pg_isready` so dependent services never start against an unready database.
+* **`.dockerignore`:** Excludes host `node_modules` (Windows binaries) so Docker installs Linux-native binaries inside the container.
+
+### 3. Dynamic Environment Routing (`DB_MODE`)
+The backend uses a polymorphic data-service layer controlled by `DB_MODE`:
+
+| `DB_MODE` | Connection | SSL | Used by |
+|---|---|---|---|
+| `docker_pg` | `DATABASE_URL` (Docker internal) | ❌ | Local Docker stack |
+| `render_pg` | `DATABASE_URL` (Render dashboard) | ✅ | Production on Render |
+| `local_pg` | `DB_LOCAL_URL` | ❌ | Direct host PostgreSQL |
+| `json` | `server/src/db/db.json` | ❌ | Offline demo / mock |
+
+---
+
+## 🚀 Running Locally with Docker (Recommended)
+
+> **Prerequisite:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) must be installed and running.
+
+```bash
+git clone <your-repo-url>
+cd ExamApp
+docker compose up --build
+```
+
+That's it. Docker will:
+1. Pull and start **PostgreSQL 15**
+2. Run the **seeder** — creates all tables and inserts demo accounts
+3. Start the **Express API server** on port `5000`
+4. Build and serve the **React frontend** via Nginx on port `80`
+
+| URL | Service |
+|---|---|
+| [http://localhost](http://localhost) | Frontend (React SPA) |
+| [http://localhost:5000/api/status](http://localhost:5000/api/status) | API health check |
+| `localhost:5435` | PostgreSQL (for DB clients like pgAdmin/DBeaver) |
+
+### 🔍 Inspecting the Database with pgAdmin
+
+[pgAdmin](https://www.pgadmin.org/) is a free GUI tool for PostgreSQL. Use it to browse tables, run SQL queries, and inspect the live data while the Docker stack is running.
+
+#### Connection Details
+
+| Field | Value |
+|---|---|
+| **Host** | `localhost` |
+| **Port** | `5435` *(Docker maps container port 5432 → host port 5435)* |
+| **Database** | `exam_app` |
+| **Username** | `postgres` |
+| **Password** | `postgres` |
+
+#### Step-by-Step: Register the Server in pgAdmin
+
+1. Open **pgAdmin** and right-click **Servers** → **Register → Server…**
+2. On the **General** tab — set **Name:** `ExamApp Local`
+3. On the **Connection** tab — fill in the values from the table above
+4. Click **Save**
+
+You will see the `exam_app` database appear under **Servers → ExamApp Local → Databases**.
+
+#### Tables to Explore
+
+Navigate to: `exam_app → Schemas → public → Tables`
+
+| Table | Contains |
+|---|---|
+| `users` | All teacher and student accounts (bcrypt-hashed passwords) |
+| `exams` | Exam metadata and questions (stored as JSONB) |
+| `studentScores` | Submitted exam results, grades, and publish status |
+| `studentFeedbacks` | Student queries and teacher responses |
+| `activeSessions` | Live exam sessions (cleared on every stack restart) |
+
+> **Tip:** Right-click any table → **View/Edit Data → All Rows** to see its contents instantly.
+
+### Stopping the stack
+```bash
+docker compose down          # stop containers (data preserved in volume)
+docker compose down -v       # stop + delete all data (clean slate)
+```
+
+---
+
+## 🖥️ Running Locally Without Docker (Manual)
+
+If you prefer to run the server and client directly on your host machine:
+
+### 1. Start the Database
 ```bash
 docker compose up -d postgres
 ```
 
-### 1.1 Inspecting the Database (pgAdmin / DBeaver)
-You can inspect or query the running database using **pgAdmin**, **DBeaver**, or any other database manager with the following connection details:
-* **Host:** `localhost`
-* **Port:** `5435` *(internal container port `5432` maps to `5435` on host)*
-* **Maintenance Database:** `exam_app`
-* **Username:** `postgres`
-* **Password:** `postgres`
+### 2. Start the Backend Server
+```bash
+cd server
+npm install
+# Copy the example env file and adjust if needed
+copy .env.example .env      # Windows
+cp .env.example .env        # macOS/Linux
+npm run seed                # Create tables + insert demo data
+npm run start
+```
 
-### 2. Start Backend Server (`server/`)
-1. Navigate to the server directory:
-   ```bash
-   cd server
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Initialize the environment variables file:
-   ```bash
-   copy .env.example .env
-   ```
-   *Make sure `DB_MODE` is set to `docker_pg` to use the PostgreSQL container.*
-4. Run the seed script to create tables and insert mock users/exams:
-   ```bash
-   npm run seed
-   ```
-5. Start the API application:
-   ```bash
-   npm run start
-   ```
+### 3. Start the Frontend Client
+```bash
+cd client
+npm install
+npm run dev
+```
+Open [http://localhost:5173/](http://localhost:5173/) in your browser.
 
-### 3. Start Frontend Client (`client/`)
-1. Open a new terminal window and navigate to the client folder:
-   ```bash
-   cd client
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-   *Open [http://localhost:5173/](http://localhost:5173/) to use the application.*
+---
+
+## ☁️ Production Deployment (Render.com)
+
+The project is deployed to Render with three services:
+
+| Render Service | Type | Root Dir |
+|---|---|---|
+| `examapp-db` | PostgreSQL | — |
+| `examapp-server` | Web Service | `server/` |
+| `examapp-client` | Static Site | `client/` |
+
+### Backend Environment Variables (Render Dashboard)
+Set these in the Render Web Service → **Environment** tab:
+
+| Variable | Value |
+|---|---|
+| `DB_MODE` | `render_pg` |
+| `DATABASE_URL` | *(Internal DB URL from Render PostgreSQL dashboard)* |
+| `JWT_SECRET` | *(A long random string — keep secret)* |
+| `NODE_ENV` | `production` |
+
+### Frontend Environment Variables (Render Dashboard)
+Set in the Render Static Site → **Environment** tab (applied at build time):
+
+| Variable | Value |
+|---|---|
+| `VITE_API_URL` | `https://your-server-name.onrender.com/api` |
+
+### First Deploy — Seed the Database
+After deploying the server, run the seed from local machine once:
+```bash
+# Set DATABASE_URL in server/.env to the Render External DB URL, then:
+cd server
+npm run seed
+```
 
 ---
 
 ## 🔑 Demo Access Accounts
 
-After running the seed script, log in using the credentials below:
+Available immediately after `docker compose up --build` (no manual steps needed):
 
-| Name | Username | Password | Role |
+| Full Name | Username | Password | Role |
 |---|---|---|---|
 | **Maya Cohen** | `teacher1` | `123444` | Teacher |
 | **Rami Levi** | `teacher2` | `23417` | Teacher |
 | **Noor Ahmed** | `student1` | `1789` | Student |
 | **Lina Mansour** | `student2` | `258` | Student |
 | **Adam Saleh** | `student3` | `12345` | Student |
+
+---
+
+## 📁 Project Structure
+
+```
+ExamApp/
+├── client/                    # React 19 + Vite frontend
+│   ├── src/
+│   │   ├── api/               # API service layer (examService, authService, etc.)
+│   │   ├── components/        # Shared UI components (NavigationMenu, etc.)
+│   │   ├── pages/             # Auth pages (Login, Register)
+│   │   ├── teacherPages/      # Teacher dashboard, exam management
+│   │   ├── studentPages/      # Student portal, results
+│   │   └── utils/             # Services (ConfigService, StorageService, etc.)
+│   ├── Dockerfile             # Multi-stage: Vite build → Nginx serve
+│   └── .dockerignore
+│
+├── server/                    # Node.js + Express 5 backend
+│   ├── src/
+│   │   ├── db/
+│   │   │   ├── connect.js     # DB pool factory (DB_MODE routing)
+│   │   │   ├── schema.sql     # Tables + demo seed data
+│   │   │   └── seed.js        # Runs schema.sql against the DB
+│   │   ├── controllers/       # Route handlers
+│   │   ├── routes/            # Express routers
+│   │   ├── middleware/        # JWT auth, request logger, error handler
+│   │   └── services/          # Business logic layer
+│   ├── Dockerfile             # Node 20 Alpine, production deps only
+│   ├── .dockerignore
+│   ├── .env                   # Local env (gitignored)
+│   └── .env.example           # Template with placeholders
+│
+├── microservices/             # Optional standalone demo (gateway + analytics)
+│   └── docker-compose.yml
+│
+├── docker-compose.yml         # Full local stack: postgres + seeder + server + client
+└── README.md
+```
 
 ---
 
