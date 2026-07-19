@@ -345,6 +345,8 @@ Open [http://localhost:5173/](http://localhost:5173/) in your browser.
 
 ## ☁️ Production Deployment (Render.com)
 
+**Live Demo:** [https://examapp-ww47.onrender.com](https://examapp-ww47.onrender.com)
+
 The project is deployed to Render with three services:
 
 | Render Service | Type | Root Dir |
