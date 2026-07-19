@@ -92,6 +92,18 @@ services:
     networks:
       - exam_network
 
+  # ── Startup Helper (Prints URLs) ───────────────────────────────
+  welcome:
+    image: alpine
+    container_name: exam_app_welcome
+    depends_on:
+      client:
+        condition: service_started
+      server:
+        condition: service_started
+    command: >
+      sh -c "sleep 5 && echo '' && echo '==================================================' && echo '✅ E-Test System is running successfully!' && echo '' && echo '🌐 Frontend:' && echo 'http://localhost' && echo '' && echo '🔗 API Health Check:' && echo 'http://localhost:5000/api/status' && echo '' && echo '🔑 Demo Login:' && echo 'Teacher: teacher1 / 123444' && echo 'Student: student1 / 1789' && echo '=================================================='"
+
 # ── Shared Resources ───────────────────────────────────────────
 volumes:
   postgres_data:
