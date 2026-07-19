@@ -33,9 +33,6 @@ function App() {
   // שומר האם התלמיד נמצא כרגע במהלך מבחן פעיל
   const [isExamActive, setIsExamActive] = useState(false)
 
-  // מצב מקור הנתונים קבוע כעת ל-SERVER
-  const dataMode = 'SERVER'
-
   // שומר את מצב העיצוב (ערכת נושא)
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light')
 
@@ -64,7 +61,7 @@ function App() {
     const fetchScores = async () => {
       if (user) {
         try {
-          const scores = await scoreService.getScores(user.id, user.role, user.username)
+          const scores = await scoreService.getScores()
           setStudentResults(scores)
           hasFetchedScoresRef.current = true
 
@@ -103,23 +100,18 @@ function App() {
       }
     }
     fetchScores()
-  }, [user, dataMode])
+  }, [user])
 
   // Poll scores periodically for student to check if teacher published marks
   useEffect(() => {
     if (!user || user.role !== 'student') return
 
-    console.log(`[DEBUG] Initializing mark-publishing polling for student "${user.username}" (ID: ${user.id})`)
-
     const intervalId = setInterval(async () => {
       try {
-        console.log('[DEBUG] Student polling latest scores from server...')
-        const latestScores = await scoreService.getScores(user.id, user.role, user.username)
-        console.log('[DEBUG] Fetched scores:', latestScores)
+        const latestScores = await scoreService.getScores()
         
         if (hasFetchedScoresRef.current) {
           setStudentResults((prevResults) => {
-            console.log('[DEBUG] Comparing latest scores against previous scores:', prevResults)
             const newlyPublished = latestScores.filter(newScore => {
               const oldScore = prevResults.find(r => r.id === newScore.id)
               const isNowPublished = newScore.isPublished !== false
@@ -129,13 +121,10 @@ function App() {
               // Also check if already marked as seen in localStorage
               const seenIds = JSON.parse(localStorage.getItem('seenPublishedScores') || '[]')
               const isSeen = seenIds.includes(newScore.id)
-              
-              console.log(`[DEBUG] Exam "${newScore.examTitle}" (Score ID ${newScore.id}): wasPublished=${wasOldPublished} -> isPublished=${isNowPublished}, isSeen=${isSeen}`)
               return isNowPublished && !wasOldPublished && !isSeen
             })
 
             if (newlyPublished.length > 0) {
-              console.log('[DEBUG] Found newly published scores!', newlyPublished)
               newlyPublished.forEach(score => {
                 const finalGrade = score.manualGrade !== null && score.manualGrade !== undefined ? score.manualGrade : score.grade
                 
@@ -158,17 +147,15 @@ function App() {
             return latestScores
           })
         } else {
-          console.log('[DEBUG] Initial score state stored, starting transition tracking from now on.')
           setStudentResults(latestScores)
           hasFetchedScoresRef.current = true
         }
       } catch (err) {
-        console.error('[DEBUG] Failed to poll scores:', err)
+        console.error('Failed to poll scores:', err)
       }
     }, 4000) // Poll every 4 seconds
 
     return () => {
-      console.log(`[DEBUG] Cleaning up mark-publishing polling for student "${user.username}"`)
       clearInterval(intervalId)
     }
   }, [user])
