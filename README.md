@@ -251,7 +251,7 @@ The backend uses a polymorphic data-service layer controlled by `DB_MODE`:
 > **Prerequisite:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) must be installed and running.
 
 ```bash
-git clone <your-repo-url>
+git clone <repo-url>
 cd ExamApp
 docker compose up --build
 ```
